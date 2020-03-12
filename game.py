@@ -2,6 +2,7 @@ import pygame as pg
 from sys import exit
 from player import Player
 from debug_sprites import colors
+import layers
 
 pg.init()
 
@@ -27,9 +28,15 @@ class Game:
 
             delta_time = self.clock.get_time() / 1000
 
-            for obj in self.objects:
+            for i, obj in enumerate(self.objects):
                 obj.update(delta_time)
                 obj.physics_update(delta_time)
+
+                if obj.to_kill:
+                    obj.on_kill(*obj.kill_args, **obj.kill_kwargs)
+                    self.objects.pop(i)
+                    if obj.sprite is not None:
+                        self.sprites.remove(obj.sprite)
 
             self.screen.fill(colors.WHITE)
 
@@ -40,7 +47,17 @@ class Game:
 
             self.clock.tick(60)
 
+    def compute_collisions(self):
+        for i, obj in enumerate(self.objects):
+            for other in self.object[i + 1:]:
+                if layers.collisions[obj][other]:
+                    if obj.body.collider.is_colliding(other):
+                        obj.on_collision(other)
+                        other.on_collision(obj)
+
     def add(self, obj):
+        obj.game = self
+
         self.objects.append(obj)
         if obj.sprite is not None:
             self.sprites.add(obj.sprite)
