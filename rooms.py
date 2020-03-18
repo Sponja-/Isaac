@@ -1,6 +1,9 @@
 from random import random, randint, choice
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+
+tile_width = 50
+tile_height = 50
 
 DOWN = 0
 UP = 1
@@ -18,8 +21,14 @@ mirror = {
 class Room:
     def __init__(self, position):
         self.position = position
-        self.neighbors = [None, None, None, None]
-        self.available = [True, True, True, True]
+
+    def __repr__(self):
+        return f"Room({str(self.position)})"
+
+
+class DeadendRoom(Room):
+    def __init__(self, position):
+        super().__init__(position)
 
 
 class MapGenerator:
@@ -29,9 +38,16 @@ class MapGenerator:
     def __init__(self, **kwargs):
         self.rooms = [Room((0, 0))]
         self.positions = {(0, 0): 0}
+        self.deadend_sorted_lengths = []
+
+    def get_surrounding(self, position):
+        return [self.positions.get((position[0] + offset[0],
+                                    position[1] + offset[1]), None) is not None
+                for offset in MapGenerator.neighbor_offsets]
 
     def generate_neighbor(self, index):
         room = self.rooms[index]
+        neighbors = self.get_surrounding(room.position)
         if room.position == (0, 0):
             direction = choice(MapGenerator.directions)
         else:
@@ -39,14 +55,14 @@ class MapGenerator:
                 direction = choice(MapGenerator.directions)
             else:
                 direction = choice([mirror[i]
-                                   for i, neighbor in enumerate(room.neighbors)
-                                   if neighbor is not None])
-        if room.neighbors[direction] is not None:
+                                   for i, neighbor in enumerate(neighbors)
+                                   if neighbor])
+        if neighbors[direction]:
             return None
         return Room((room.position[0] + MapGenerator.neighbor_offsets[direction][0],
                      room.position[1] + MapGenerator.neighbor_offsets[direction][1]))
 
-    def next_room(self):
+    def new_room(self):
         n = random()
         if n > .4:
             new_room = self.generate_neighbor(-1)
@@ -57,21 +73,62 @@ class MapGenerator:
         else:
             new_room = None
         if new_room is None:
-            return self.next_room()
-        pos = new_room.position
-        for direction, offset in enumerate(MapGenerator.neighbor_offsets):
-            index = self.positions.get((pos[0] + offset[0], pos[1] + offset[1]), None)
-            if index is None:
-                continue
-            other = self.rooms[index]
-            if not other.available[mirror[direction]]:
-                return self.next_room()
-            new_room.neighbors[direction] = other
-            other.neighbors[mirror[direction]] = new_room
-        self.positions[pos] = len(self.rooms) - 1
+            return None
+        self.positions[new_room.position] = len(self.rooms)
         return new_room
 
-    def generate(self, amount):
+    def add_rooms(self, amount):
         while len(self.rooms) < amount:
-            self.rooms.append(self.next_room())
-        return self.rooms
+            new_room = self.new_room()
+            while new_room is None:
+                new_room = self.new_room()
+            self.positions[new_room.position] = len(self.rooms)
+            self.rooms.append(new_room)
+
+    def new_deadend(self):
+        index = randint(0, len(self.rooms) - 1)
+        if type(self.rooms[index]) is not Room:
+            return None
+        possible_directions = [i for i, neighbor in
+                               enumerate(self.get_surrounding(self.rooms[index].position))
+                               if not neighbor]
+        if len(possible_directions) == 0:
+            return None
+        direction = choice(possible_directions)
+        pos = (self.rooms[index].position[0] + MapGenerator.neighbor_offsets[direction][0],
+               self.rooms[index].position[1] + MapGenerator.neighbor_offsets[direction][1])
+        neighbor_rooms_total = sum(self.get_surrounding(pos))
+        if neighbor_rooms_total != 1:
+            return None
+        else:
+            return DeadendRoom(pos)
+
+    def add_deadends(self, amount):
+        start_len = len(self.rooms)
+        while len(self.rooms) - amount < start_len:
+            new_room = self.new_deadend()
+            while new_room is None:
+                new_room = self.new_deadend()
+            self.positions[new_room.position] = len(self.rooms)
+            self.rooms.append(new_room)
+
+    def generate_map(self, amount, deadends):
+        self.add_rooms(amount - deadends)
+        self.add_deadends(deadends)
+
+
+if __name__ == "__main__":
+    mg = MapGenerator()
+    mg.generate_map(20, 5)
+
+    img = np.full((25, 25, 3), 0)
+
+    for r in mg.rooms:
+        index = (r.position[1] + 13, r.position[0] + 13)
+        if type(r) is Room:
+            img[index] = (255, 255, 255)
+        if type(r) is DeadendRoom:
+            img[index] = (255, 255, 0)
+
+    plt.imshow(img)
+    plt.show()

@@ -26,10 +26,17 @@ class PlayerTear(GameObject):
 
         self.damage = damage
 
-    def update(self, delta_time):
-        self.remaining_range -= self.speed * delta_time
+        self.on_update += check_range
+        self.on_collide += enemy_collision
 
-    def on_collide(self, other):
-        if other.layer == layers.ENEMIES:
-            other.do_damage(self.damage)
-            self.kill()
+
+def enemy_collision(self, other):
+    if other.layer == layers.ENEMIES:
+        other.do_damage(self.damage)
+        self.kill()
+
+
+def check_range(self, delta_time):
+    self.remaining_range -= self.speed * delta_time
+    if self.remaining_range <= 0:
+        self.kill()
