@@ -12,7 +12,11 @@ class Pickup(GameObject):
         self.sprite = sprite
         self.layer = layers.PICKUPS
 
-        self.on_collide += type(self).action
+        def do_pickup(self, player):
+            self.action(player)
+            self.kill()
+
+        self.on_collide += do_pickup
 
     def action(self, player):
         pass
@@ -24,7 +28,6 @@ class Key(Pickup):
 
     def action(self, player):
         player.pickups["Keys"] += 1
-        self.kill()
 
 
 class Bomb(Pickup):
@@ -33,7 +36,6 @@ class Bomb(Pickup):
 
     def action(self, player):
         player.pickups["Bombs"] += 1
-        self.kill()
 
 
 class Coin(Pickup):
@@ -42,7 +44,6 @@ class Coin(Pickup):
 
     def action(self, player):
         player.pickups["Coins"] += 1
-        self.kill()
 
 
 class Heart(Pickup):
@@ -51,4 +52,3 @@ class Heart(Pickup):
 
     def action(self, player):
         player.life += 1.0
-        self.kill()

@@ -6,6 +6,7 @@ from tears import PlayerTear
 import layers
 
 SQRT_2 = 2 ** .5
+INVULNERABLE_TIME = 1
 
 
 class Player(GameObject):
@@ -43,10 +44,22 @@ class Player(GameObject):
 
         self.life = 3
         self.can_shoot = True
+        self.invulnerable = False
 
     def damage(self, amount=.5):
+        if self.invulnerable:
+            return False
+
         self.life -= amount
+        self.invulnerable = True
+
+        def reset_invulnerable():
+            self.invulnerable = False
+
+        self.game.add_wait(INVULNERABLE_TIME, reset_invulnerable)
+
         self.on_damage.dispatch(self, amount)
+        return True
 
     def heal(self, amount):
         self.life += amount
