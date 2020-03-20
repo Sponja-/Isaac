@@ -33,20 +33,16 @@ class Player(GameObject):
             "Keys": 0
         }
 
-        self.tear_delay = 0
-
         self.on_move = Event("move")
         self.on_fire = Event("fire")
         self.on_heal = Event("heal")
         self.on_damage = Event("damage")
 
-        self.on_update += reduce_delay
         self.on_update += move
         self.on_update += fire
 
         self.life = 3
-
-        self.invulnerable_ticks = 0
+        self.can_shoot = True
 
     def damage(self, amount=.5):
         self.life -= amount
@@ -55,11 +51,6 @@ class Player(GameObject):
     def heal(self, amount):
         self.life += amount
         self.on_heal.dispatch(self, amount)
-
-
-def reduce_delay(self, delta_time):
-    if self.tear_delay > 0:
-        self.tear_delay -= delta_time
 
 
 def move(self, delta_time):
@@ -91,7 +82,7 @@ def move(self, delta_time):
 
 def fire(self, delta_time):
     keys = pg.key.get_pressed()
-    if self.tear_delay > 0:
+    if not self.can_shoot:
         return
 
     shot_speed = self.stats["Shot Speed"]
@@ -111,5 +102,11 @@ def fire(self, delta_time):
                       range=self.stats["Range"],
                       damage=self.stats["Damage"])
     self.game.add(tear)
-    self.tear_delay = self.stats["Tears"] / 10  # Temporary
+    self.can_shoot = False
+
+    def reset_shoot():
+        self.can_shoot = True
+
+    self.game.add_wait(self.stats["Tears"] / 10, reset_shoot)
+
     self.on_fire.dispatch(self, tear)

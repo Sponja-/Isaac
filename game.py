@@ -18,6 +18,8 @@ class Game:
         self.objects = []
         self.sprites = pg.sprite.Group()
 
+        self.waits = []
+
         self.player = Player()
         self.add(self.player)
 
@@ -39,6 +41,13 @@ class Game:
                         self.sprites.remove(obj.sprite)
 
             self.compute_collisions()
+
+            current_time = self.get_time()
+
+            for i, (time, function, args) in enumerate(self.waits):
+                if time <= current_time:
+                    function(*args)
+                    self.waits.pop(i)
 
             self.screen.fill(colors.WHITE)
 
@@ -65,6 +74,12 @@ class Game:
         self.objects.append(obj)
         if obj.sprite is not None:
             self.sprites.add(obj.sprite)
+
+    def get_time(self):
+        return pg.time.get_ticks() / 1000
+
+    def add_wait(self, time, function, args=()):
+        self.waits.append((self.get_time() + time, function, args))
 
 
 game = Game((800, 600))
