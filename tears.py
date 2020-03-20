@@ -5,7 +5,7 @@ import layers
 
 
 def damage_to_radius(damage):
-    return int(damage / 10)
+    return int(damage / 5)
 
 
 class PlayerTear(GameObject):

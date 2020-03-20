@@ -2,6 +2,7 @@ import pygame as pg
 from sys import exit
 from player import Player
 from debug_sprites import colors
+from pickups import Coin
 import layers
 
 pg.init()
@@ -37,6 +38,8 @@ class Game:
                     if obj.sprite is not None:
                         self.sprites.remove(obj.sprite)
 
+            self.compute_collisions()
+
             self.screen.fill(colors.WHITE)
 
             self.sprites.update(delta_time)
@@ -49,8 +52,8 @@ class Game:
     def compute_collisions(self):
         for i, obj in enumerate(self.objects):
             for other in self.objects[i + 1:]:
-                if layers.collisions[obj][other]:
-                    if obj.body.collider.is_colliding(other):
+                if layers.collisions[obj.layer][other.layer]:
+                    if obj.body.collider.is_colliding(other.body.collider):
                         obj.collide(other)
                         other.collide(obj)
 
@@ -65,5 +68,7 @@ class Game:
 
 
 game = Game((800, 600))
+
+game.add(Coin(position=(200, 200)))
 
 game.run()

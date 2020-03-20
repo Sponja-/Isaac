@@ -12,7 +12,7 @@ class Player(GameObject):
     def __init__(self):
         self.body = RigidBody(collider=RectCollider,
                               position=(50, 50),
-                              size=(30, 50),
+                              size=(50, 80),
                               damping=3.5)
 
         self.sprite = RectangleSprite(colors.BLACK, self.body.collider.size())
@@ -20,21 +20,41 @@ class Player(GameObject):
 
         # Stats
         self.stats = {
-            "Speed": 60000,
+            "Speed": 1000,
             "Damage": 50,
-            "Shot Speed": 100,
-            "Range": 300,
+            "Shot Speed": 300,
+            "Range": 600,
             "Tears": 10
+        }
+
+        self.pickups = {
+            "Coins": 0,
+            "Bombs": 0,
+            "Keys": 0
         }
 
         self.tear_delay = 0
 
         self.on_move = Event("move")
         self.on_fire = Event("fire")
+        self.on_heal = Event("heal")
+        self.on_damage = Event("damage")
 
         self.on_update += reduce_delay
         self.on_update += move
         self.on_update += fire
+
+        self.life = 3
+
+        self.invulnerable_ticks = 0
+
+    def damage(self, amount=.5):
+        self.life -= amount
+        self.on_damage.dispatch(self, amount)
+
+    def heal(self, amount):
+        self.life += amount
+        self.on_heal.dispatch(self, amount)
 
 
 def reduce_delay(self, delta_time):
@@ -50,16 +70,16 @@ def move(self, delta_time):
 
     if keys[pg.K_w]:
         movement_axes += 1
-        move_force += (0, -speed * delta_time)
+        move_force += (0, -speed)
     elif keys[pg.K_s]:
         movement_axes += 1
-        move_force += (0, speed * delta_time)
+        move_force += (0, speed)
     if keys[pg.K_a]:
         movement_axes += 1
-        move_force += (-speed * delta_time, 0)
+        move_force += (-speed, 0)
     elif keys[pg.K_d]:
         movement_axes += 1
-        move_force += (speed * delta_time, 0)
+        move_force += (speed, 0)
 
     if movement_axes == 2:
         move_force /= SQRT_2

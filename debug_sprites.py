@@ -8,6 +8,9 @@ class colors:
     GREEN = (0, 255, 0)
     BLUE = (0, 0, 255)
     YELLOW = (255, 255, 0)
+    GRAY = (128, 128, 128)
+    LIGHT_GRAY = (192, 192, 192)
+    DARK_RED = (128, 16, 16)
 
 
 class RectangleSprite(pg.sprite.Sprite):

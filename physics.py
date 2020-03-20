@@ -211,25 +211,25 @@ class CircleCollider(ICollider):
 
 
 def collisionRectRect(r1, r2):
-    return (r1.position.x < r2.position.x + r2.width and
-            r1.position.x + r1.width > r2.position.x and
-            r1.position.y < r2.position.y + r2.height and
-            r1.position.y + r1.height > r2.position.y)
+    return (r1.top_left().x < r2.top_left().x + r2.width and
+            r1.top_left().x + r1.width > r2.top_left().x and
+            r1.top_left().y < r2.top_left().y + r2.height and
+            r1.top_left().y + r1.height > r2.top_left().y)
 
 
 def collisionCircleCircle(c1, c2):
-    return (c1.position - c2.position).sqr_magnitude() <= (c1.radius + c2.radius) ** 2
+    return (c1.center() - c2.center()).sqr_magnitude() <= (c1.radius + c2.radius) ** 2
 
 
 def collisionRectCircle(r, c):
     closest_point = copy(c.center())
-    if closest_point.x < r.position.x:
-        closest_point.x = r.position.x
-    elif closest_point.x > r.position.x + r.width:
-        closest_point.x = r.position.x + r.width
-    if closest_point.y < r.position.y:
-        closest_point.y = r.position.y
-    elif closest_point.y > r.position.y + r.height:
-        closest_point.y = r.position.y + r.height
+    if closest_point.x < r.top_left().x:
+        closest_point.x = r.top_left().x
+    elif closest_point.x > r.top_left().x + r.width:
+        closest_point.x = r.top_left().x + r.width
+    if closest_point.y < r.top_left().y:
+        closest_point.y = r.top_left().y
+    elif closest_point.y > r.top_left().y + r.height:
+        closest_point.y = r.top_left().y + r.height
 
     return (closest_point - c.center()).sqr_magnitude() <= c.radius ** 2

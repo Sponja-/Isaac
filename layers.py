@@ -1,5 +1,5 @@
 PLAYER = 0
-ITEMS = 1
+PICKUPS = 1
 ENEMIES = 2
 OBSTACLES = 3
 PLAYER_TEARS = 4
@@ -9,15 +9,15 @@ ENEMY_TEARS = 5
 collisions = {
     PLAYER: {
         PLAYER: False,
-        ITEMS: True,
+        PICKUPS: True,
         ENEMIES: True,
         OBSTACLES: True,
         PLAYER_TEARS: False,
         ENEMY_TEARS: True
     },
-    ITEMS: {
+    PICKUPS: {
         PLAYER: True,
-        ITEMS: True,
+        PICKUPS: True,
         ENEMIES: False,
         OBSTACLES: True,
         PLAYER_TEARS: False,
@@ -25,7 +25,7 @@ collisions = {
     },
     ENEMIES: {
         PLAYER: True,
-        ITEMS: False,
+        PICKUPS: False,
         ENEMIES: True,
         OBSTACLES: True,
         PLAYER_TEARS: True,
@@ -33,7 +33,7 @@ collisions = {
     },
     OBSTACLES: {
         PLAYER: True,
-        ITEMS: True,
+        PICKUPS: True,
         ENEMIES: True,
         OBSTACLES: False,
         PLAYER_TEARS: True,
@@ -41,7 +41,7 @@ collisions = {
     },
     PLAYER_TEARS: {
         PLAYER: False,
-        ITEMS: False,
+        PICKUPS: False,
         ENEMIES: True,
         OBSTACLES: False,
         PLAYER_TEARS: False,
