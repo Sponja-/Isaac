@@ -1,7 +1,7 @@
 import pygame as pg
 from game_object import GameObject, Event
-from physics import RigidBody, Vector, RectCollider
-from debug_sprites import RectangleSprite, colors
+from physics import RigidBody, Vector, CircleCollider
+from debug_sprites import CircleSprite,  colors
 from tears import PlayerTear
 import layers
 
@@ -11,12 +11,12 @@ INVULNERABLE_TIME = 1
 
 class Player(GameObject):
     def __init__(self):
-        self.body = RigidBody(collider=RectCollider,
+        self.body = RigidBody(collider=CircleCollider,
                               position=(50, 50),
-                              size=(50, 80),
+                              radius=20,
                               damping=3.5)
 
-        self.sprite = RectangleSprite(colors.BLACK, self.body.collider.size())
+        self.sprite = CircleSprite(colors.BLACK, self.body.collider.radius)
         self.layer = layers.PLAYER
 
         # Stats
@@ -67,6 +67,7 @@ class Player(GameObject):
 
 
 def move(self, delta_time):
+    print(self.body.collider.center())
     keys = pg.key.get_pressed()
     movement_axes = 0
     move_force = Vector(0, 0)

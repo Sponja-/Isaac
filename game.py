@@ -3,7 +3,9 @@ from sys import exit
 from player import Player
 from debug_sprites import colors
 from pickups import Coin
+from rocks import Rock
 import layers
+import physics
 
 pg.init()
 
@@ -65,6 +67,9 @@ class Game:
                     if obj.body.collider.is_colliding(other.body.collider):
                         obj.collide(other)
                         other.collide(obj)
+                        if not(obj.body.disable_collide or
+                               other.body.disable_collide):
+                            physics.resolveCollision(obj.body, other.body)
 
     def add(self, obj):
         obj.game = self
@@ -85,5 +90,6 @@ class Game:
 game = Game((800, 600))
 
 game.add(Coin(position=(200, 200)))
+game.add(Rock(position=(100, 30)))
 
 game.run()

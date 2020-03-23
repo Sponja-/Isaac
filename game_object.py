@@ -20,11 +20,14 @@ class GameObject:
 
         if self.sprite is not None:
             if self.body is not None:
-                point = self.body.collider.top_left()
+                point = self.sprite_top_left()
                 self.sprite.rect.x = int(point.x)
                 self.sprite.rect.y = int(point.y)
 
         self.on_physics_update.dispatch(self, delta_time)
+
+    def sprite_top_left(self):
+        return self.body.collider.top_left()
 
     def update(self, delta_time):
         self.pre_update(delta_time)
@@ -42,6 +45,7 @@ class GameObject:
 
     def kill(self, *args, **kwargs):
         self.to_kill = True
+        self.body.disable_collide = True
         self.on_kill.dispatch(self, *args, **kwargs)
 
 

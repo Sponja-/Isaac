@@ -15,7 +15,8 @@ class PlayerTear(GameObject):
         self.body = KinematicBody(collider=CircleCollider,
                                   radius=radius,
                                   position=position,
-                                  velocity=velocity)
+                                  velocity=velocity,
+                                  disable_collide=True)
 
         self.sprite = CircleSprite(colors.BLUE, radius)
 
