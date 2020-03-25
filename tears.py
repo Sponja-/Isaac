@@ -28,10 +28,10 @@ class PlayerTear(GameObject):
         self.damage = damage
 
         self.on_update += check_range
-        self.on_collide += enemy_collision
+        self.on_collide += collision
 
 
-def enemy_collision(self, other):
+def collision(self, other):
     if other.layer == layers.ENEMIES:
         other.do_damage(self.damage)
         self.kill()

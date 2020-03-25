@@ -333,11 +333,16 @@ def resolveCollision(a, b, delta_time):
     relative_velocity = a.velocity - b.velocity
     velocity_on_normal = relative_velocity.dot(normal)
 
-    e = min(a.restitution, b.restitution)
+    #e = min(a.restitution, b.restitution)
 
-    j = -(1 + e) * velocity_on_normal
-    j /= a.inverse_mass + b.inverse_mass
+    #j = -(1 + e) * velocity_on_normal
+    #j /= a.inverse_mass + b.inverse_mass
 
-    impulse = j * normal
-    a.velocity += impulse * a.inverse_mass * delta_time
-    b.velocity -= impulse * b.inverse_mass * delta_time
+    #impulse = j * normal
+    #a.velocity += impulse * a.inverse_mass * delta_time
+    #b.velocity -= impulse * b.inverse_mass * delta_time
+
+    percent = .1
+    correction = (penetration / (a.inverse_mass + b.inverse_mass)) * percent * normal
+    a.collider.move(a.inverse_mass * correction)
+    b.collider.move(-b.inverse_mass * correction)
