@@ -67,9 +67,7 @@ class Game:
                     if obj.body.collider.is_colliding(other.body.collider):
                         obj.collide(other)
                         other.collide(obj)
-                        if not(obj.body.disable_collide or
-                               other.body.disable_collide):
-                            physics.resolveCollision(obj.body, other.body, delta_time)
+                        physics.resolveCollision(obj.body, other.body, delta_time)
 
     def add(self, obj):
         obj.game = self

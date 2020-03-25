@@ -21,7 +21,7 @@ class CircleRock(GameObject):
         self.body = RigidBody(collider=CircleCollider,
                               position=position,
                               radius=20,
-                              mass=0)
+                              mass=1)
 
         self.sprite = CircleSprite(colors.BLACK, self.body.collider.radius)
 

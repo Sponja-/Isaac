@@ -35,6 +35,8 @@ def collision(self, other):
     if other.layer == layers.ENEMIES:
         other.do_damage(self.damage)
         self.kill()
+    if other.layer == layers.OBSTACLES:
+        self.kill()
 
 
 def check_range(self, delta_time):

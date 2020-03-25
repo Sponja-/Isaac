@@ -127,7 +127,6 @@ class RigidBody(IBody):
         mass = kwargs.get("mass", 1.0)
         self.inverse_mass = 1 / kwargs.get("mass", 1.0) if mass != 0 else 0
         self.damping = kwargs.get("damping", 0.5)
-        self.restitution = kwargs.get("restitution", -.7)
         self.disable_collide = kwargs.get("disable_collide", False)
 
     def update(self, delta_time):
@@ -266,8 +265,7 @@ def detectCollisionRectCircle(r, c):
 #  Returns (normal, penetration)
 def resolveCollisionCircleCircle(c1, c2):
     vec = c1.center() - c2.center()
-    distance = vec.magnitude()
-    return (vec / distance, c1.radius + c2.radius - distance)
+    return (vec, c1.radius + c2.radius - vec.magnitude())
 
 
 def resolveCollisionRectRect(r1, r2):
@@ -316,33 +314,26 @@ def resolveCollisionRectCircle(r, c):
 
 
 def resolveCollision(a, b, delta_time):
-    if type(a) is KinematicBody or type(b) is KinematicBody:
+    if (type(a) is KinematicBody or type(b) is KinematicBody
+       or a.disable_collide or b.disable_collide):
         return
     if type(a.collider) is RectCollider:
         if type(b.collider) is RectCollider:
             normal, penetration = resolveCollisionRectRect(a.collider, b.collider)
         elif type(b.collider) is CircleCollider:
             normal, penetration = resolveCollisionRectCircle(a.collider, b.collider)
+            circle = False
     elif type(a.collider) is CircleCollider:
         if type(b.collider) is CircleCollider:
             normal, penetration = resolveCollisionCircleCircle(a.collider, b.collider)
+            circle = True
         elif type(b.collider) is RectCollider:
             normal, penetration = resolveCollisionRectCircle(b.collider, a.collider)
             normal *= -1
+            circle = False
 
-    relative_velocity = a.velocity - b.velocity
-    velocity_on_normal = relative_velocity.dot(normal)
-
-    #e = min(a.restitution, b.restitution)
-
-    #j = -(1 + e) * velocity_on_normal
-    #j /= a.inverse_mass + b.inverse_mass
-
-    #impulse = j * normal
-    #a.velocity += impulse * a.inverse_mass * delta_time
-    #b.velocity -= impulse * b.inverse_mass * delta_time
-
-    percent = .1
+    print(penetration, normal.magnitude())
+    percent = 2 if circle else 6
     correction = (penetration / (a.inverse_mass + b.inverse_mass)) * percent * normal
-    a.collider.move(a.inverse_mass * correction)
-    b.collider.move(-b.inverse_mass * correction)
+    a.collider.move(a.inverse_mass * correction * delta_time)
+    b.collider.move(-b.inverse_mass * correction * delta_time)
