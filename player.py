@@ -67,7 +67,6 @@ class Player(GameObject):
 
 
 def move(self, delta_time):
-    print(self.body.collider.center())
     keys = pg.key.get_pressed()
     movement_axes = 0
     move_force = Vector(0, 0)

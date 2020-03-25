@@ -3,7 +3,7 @@ from sys import exit
 from player import Player
 from debug_sprites import colors
 from pickups import Coin
-from rocks import Rock
+from rocks import Rock, CircleRock
 import layers
 import physics
 
@@ -42,7 +42,7 @@ class Game:
                     if obj.sprite is not None:
                         self.sprites.remove(obj.sprite)
 
-            self.compute_collisions()
+            self.compute_collisions(delta_time)
 
             current_time = self.get_time()
 
@@ -60,7 +60,7 @@ class Game:
 
             self.clock.tick(60)
 
-    def compute_collisions(self):
+    def compute_collisions(self, delta_time):
         for i, obj in enumerate(self.objects):
             for other in self.objects[i + 1:]:
                 if layers.collisions[obj.layer][other.layer]:
@@ -69,7 +69,7 @@ class Game:
                         other.collide(obj)
                         if not(obj.body.disable_collide or
                                other.body.disable_collide):
-                            physics.resolveCollision(obj.body, other.body)
+                            physics.resolveCollision(obj.body, other.body, delta_time)
 
     def add(self, obj):
         obj.game = self
@@ -91,5 +91,6 @@ game = Game((800, 600))
 
 game.add(Coin(position=(200, 200)))
 game.add(Rock(position=(100, 30)))
+game.add(CircleRock(position=(500, 500)))
 
 game.run()

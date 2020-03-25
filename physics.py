@@ -127,7 +127,7 @@ class RigidBody(IBody):
         mass = kwargs.get("mass", 1.0)
         self.inverse_mass = 1 / kwargs.get("mass", 1.0) if mass != 0 else 0
         self.damping = kwargs.get("damping", 0.5)
-        self.restitution = kwargs.get("restitution", 0.1)
+        self.restitution = kwargs.get("restitution", -.7)
         self.disable_collide = kwargs.get("disable_collide", False)
 
     def update(self, delta_time):
@@ -265,9 +265,9 @@ def detectCollisionRectCircle(r, c):
 
 #  Returns (normal, penetration)
 def resolveCollisionCircleCircle(c1, c2):
-    vec = c2.center() - c1.center()
+    vec = c1.center() - c2.center()
     distance = vec.magnitude()
-    return (vec / distance, c1.radius() + c2.radius() - distance)
+    return (vec / distance, c1.radius + c2.radius - distance)
 
 
 def resolveCollisionRectRect(r1, r2):
@@ -291,35 +291,31 @@ def resolveCollisionRectRect(r1, r2):
 
 def resolveCollisionRectCircle(r, c):
     rect_center = r.center()
-    half_width = r.width / 2
-    half_height = r.height / 2
 
     difference = c.center() - rect_center
-    clamped = copy(difference)
-    clamped.x = clamp(difference.x, -half_width, half_width)
-    clamped.y = clamp(difference.y, -half_height, half_height)
+    closest = findClosest(r, c)
 
-    if clamped == difference:
+    if closest == c.center():
         inside = True
         if abs(difference.x) > abs(difference.y):
-            if clamped.x > 0:
-                clamped.x = half_width
+            if closest.x > r.top_left().x + r.width / 2:
+                closest.x = r.top_left().x + r.width
             else:
-                clamped.x = -half_width
+                closest.x = r.top_left().x
         else:
-            if clamped.y > 0:
-                clamped.y = half_height
+            if closest.y > r.top_left().y + r.height / 2:
+                closest.y = r.top_left().y + r.height
             else:
-                clamped.y = -half_height
+                closest.y = r.top_left().y
     else:
         inside = False
 
-    normal = c.center() - clamped
+    normal = closest - c.center()
     penetration = c.radius - normal.magnitude()
     return (normal if not inside else -normal, penetration)
 
 
-def resolveCollision(a, b):
+def resolveCollision(a, b, delta_time):
     if type(a) is KinematicBody or type(b) is KinematicBody:
         return
     if type(a.collider) is RectCollider:
@@ -334,17 +330,14 @@ def resolveCollision(a, b):
             normal, penetration = resolveCollisionRectCircle(b.collider, a.collider)
             normal *= -1
 
-    relative_velocity = b.velocity - a.velocity
+    relative_velocity = a.velocity - b.velocity
     velocity_on_normal = relative_velocity.dot(normal)
-
-    if velocity_on_normal > 0:
-        return
 
     e = min(a.restitution, b.restitution)
 
-    j = -(1 + e) * velocity_on_normal / 1000
+    j = -(1 + e) * velocity_on_normal
     j /= a.inverse_mass + b.inverse_mass
 
     impulse = j * normal
-    a.add_force(impulse)
-    b.add_force(-impulse)
+    a.velocity += impulse * a.inverse_mass * delta_time
+    b.velocity -= impulse * b.inverse_mass * delta_time
