@@ -16,6 +16,7 @@ class colors:
 class RectangleSprite(pg.sprite.Sprite):
     def __init__(self, color, size):
         super().__init__()
+        size = (int(size[0]), int(size[1]))
         self.image = pg.Surface(size)
         self.image.fill(color)
 
@@ -25,6 +26,7 @@ class RectangleSprite(pg.sprite.Sprite):
 class CircleSprite(pg.sprite.Sprite):
     def __init__(self, color, radius):
         super().__init__()
+        radius = int(radius)
         self.image = pg.Surface((radius * 2, radius * 2), pg.SRCALPHA)
         pg.draw.circle(self.image, color, (radius, radius), radius)
 

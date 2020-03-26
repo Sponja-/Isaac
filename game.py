@@ -2,8 +2,10 @@ import pygame as pg
 from sys import exit
 from player import Player
 from debug_sprites import colors
-from pickups import Coin
-from rocks import Rock, CircleRock
+import rocks
+import pickups
+from rooms import MapGenerator, room_width, room_height
+import globals
 import layers
 import physics
 
@@ -22,8 +24,10 @@ class Game:
 
         self.waits = []
 
-        self.player = Player()
-        self.add(self.player)
+        self.floor_generator = MapGenerator()
+        self.floor_generator.generate_map(20, 4)
+
+        self.load_room(position=(0, 0))
 
     def run(self):
         while True:
@@ -60,6 +64,23 @@ class Game:
 
             self.clock.tick(60)
 
+    def load_room(self, *, position=None, direction=None):
+        if position is None:
+            offset = MapGenerator.neighbor_offsets[direction]
+            position = (self.current_room.position[0] + offset[0],
+                        self.current_room.position[1] + offset[1])
+        index = self.floor_generator.positions[position]
+
+        self.current_room = self.floor_generator.rooms[index]
+
+        self.sprites.empty()
+        self.objects.clear()
+
+        for obj in self.current_room.objects:
+            self.add(obj)
+
+        self.add(Player(position=(self.width / 2, self.height / 2)))
+
     def compute_collisions(self, delta_time):
         for i, obj in enumerate(self.objects):
             for other in self.objects[i + 1:]:
@@ -85,10 +106,6 @@ class Game:
         self.waits.append((self.get_time() + time, function, args))
 
 
-game = Game((800, 600))
-
-game.add(Coin(position=(200, 200)))
-game.add(Rock(position=(100, 30)))
-game.add(CircleRock(position=(500, 500)))
+game = Game((globals.TILE_SIZE * room_width, globals.TILE_SIZE * room_height))
 
 game.run()

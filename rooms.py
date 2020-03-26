@@ -1,9 +1,15 @@
 from random import random, randint, choice
 import numpy as np
 import matplotlib.pyplot as plt
+from game_object import GameObject
+from physics import RigidBody, RectCollider, Vector
+from debug_sprites import colors, RectangleSprite
+from globals import TILE_SIZE, types
+import layers
+import os
+import json
 
-tile_width = 50
-tile_height = 50
+room_size = room_width, room_height = (20, 15)
 
 DOWN = 0
 UP = 1
@@ -17,10 +23,70 @@ mirror = {
     LEFT: RIGHT
 }
 
+templates = []
+
+for file_name in os.listdir("templates"):
+    print(f"Loading templates from {file_name}")
+    with open(os.path.join("templates", file_name), 'r') as file:
+        templates.extend(json.load(file))
+
+
+class Door(GameObject):
+    positions = [
+        (room_width * TILE_SIZE / 2, room_height * TILE_SIZE),
+        (room_width * TILE_SIZE / 2, 0),
+        (room_width * TILE_SIZE, room_height * TILE_SIZE / 2),
+        (0, room_height * TILE_SIZE / 2)
+    ]
+    size = (2 * TILE_SIZE, TILE_SIZE / 4)
+
+    def __init__(self, direction):
+        position = Door.positions[direction]
+        size = Door.size if direction in (DOWN, UP) else Door.size[::-1]
+
+        self.body = RigidBody(collider=RectCollider,
+                              position=position,
+                              size=size,
+                              mass=0)
+
+        self.sprite = RectangleSprite(colors.BLACK, size)
+
+        self.layer = layers.OBSTACLES
+
+        self.direction = direction
+
+        self.enabled = True
+
+        self.on_collide += enter_door
+
+
+def enter_door(self, player):
+    if player.layer == layers.PLAYER and self.enabled:
+        self.body.disable_collide = True
+        self.game.load_room(direction=self.direction)
+
 
 class Room:
     def __init__(self, position):
         self.position = position
+        self.objects = []
+
+    def populate(self, neighbors):
+        template = choice(templates)
+        if not all(available or not actual
+                   for available, actual
+                   in zip(template["neighbors"], neighbors)):
+            return False
+
+        for obj in template["objects"]:
+            self.objects.append(types[obj["type"]](position=Vector(*obj["position"]) * TILE_SIZE,
+                                                   **obj["params"]))
+
+        for direction in MapGenerator.directions:
+            if neighbors[direction]:
+                self.objects.append(Door(direction))
+
+        return True
 
     def __repr__(self):
         return f"Room({str(self.position)})"
@@ -112,9 +178,16 @@ class MapGenerator:
             self.positions[new_room.position] = len(self.rooms)
             self.rooms.append(new_room)
 
+    def populate_rooms(self):
+        for room in self.rooms:
+            populated = False
+            while not populated:
+                populated = room.populate(self.get_surrounding(room.position))
+
     def generate_map(self, amount, deadends):
         self.add_rooms(amount - deadends)
         self.add_deadends(deadends)
+        self.populate_rooms()
 
 
 if __name__ == "__main__":

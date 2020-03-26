@@ -210,7 +210,7 @@ class RectCollider(ICollider):
 class CircleCollider(ICollider):
     def __init__(self, radius, position, **kwargs):
         self.radius = radius
-        self._position = copy(position)
+        self._position = Vector(*position)
 
     @vector_argument
     def move(self, move_vector):
@@ -332,7 +332,6 @@ def resolveCollision(a, b, delta_time):
             normal *= -1
             circle = False
 
-    print(penetration, normal.magnitude())
     percent = 2 if circle else 6
     correction = (penetration / (a.inverse_mass + b.inverse_mass)) * percent * normal
     a.collider.move(a.inverse_mass * correction * delta_time)

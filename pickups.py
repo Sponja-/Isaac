@@ -1,6 +1,7 @@
 from game_object import GameObject
 from physics import RigidBody, CircleCollider
 from debug_sprites import CircleSprite, colors
+from globals import types
 import layers
 
 
@@ -51,4 +52,10 @@ class Heart(Pickup):
         super().__init__(position, CircleSprite(colors.DARK_RED, 10))
 
     def action(self, player):
-        player.life += 1.0
+        player.heal(1.0)
+
+
+types["Key"] = Key
+types["Bomb"] = Bomb
+types["Coin"] = Coin
+types["Heart"] = Heart

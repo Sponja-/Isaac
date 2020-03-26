@@ -1,0 +1,17 @@
+[
+	{
+		"objects": [
+			{
+				"position": [2, 2],
+				"type": "Rock",
+				"params": {}
+			}
+		],
+		"neighbors": [
+			true,
+			true,
+			true,
+			true
+		]
+	}
+]

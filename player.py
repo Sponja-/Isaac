@@ -10,9 +10,9 @@ INVULNERABLE_TIME = 1
 
 
 class Player(GameObject):
-    def __init__(self):
+    def __init__(self, *, position):
         self.body = RigidBody(collider=CircleCollider,
-                              position=(50, 50),
+                              position=position,
                               radius=20,
                               damping=3.5)
 
