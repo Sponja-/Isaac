@@ -25,7 +25,8 @@ class Player(GameObject):
             "Damage": 50,
             "Shot Speed": 300,
             "Range": 600,
-            "Tears": 10
+            "Tears": 10,
+            "Max Health": 3
         }
 
         self.pickups = {
@@ -42,7 +43,7 @@ class Player(GameObject):
         self.on_update += move
         self.on_update += fire
 
-        self.life = 3
+        self.health = 3
         self.can_shoot = True
         self.invulnerable = False
 
@@ -50,19 +51,25 @@ class Player(GameObject):
         if self.invulnerable:
             return False
 
-        self.life -= amount
+        self.health -= amount
         self.invulnerable = True
 
         def reset_invulnerable():
             self.invulnerable = False
 
-        self.game.add_wait(INVULNERABLE_TIME, reset_invulnerable)
+        self.game.add_timer(INVULNERABLE_TIME, reset_invulnerable)
 
         self.on_damage.dispatch(self, amount)
+
+        if self.health <= 0:
+            self.kill()
+
+        print(self.health)
+
         return True
 
     def heal(self, amount):
-        self.life += amount
+        self.health += amount
         self.on_heal.dispatch(self, amount)
 
 
@@ -94,9 +101,9 @@ def move(self, delta_time):
 
 
 def fire(self, delta_time):
-    keys = pg.key.get_pressed()
     if not self.can_shoot:
         return
+    keys = pg.key.get_pressed()
 
     shot_speed = self.stats["Shot Speed"]
     if keys[pg.K_UP]:
@@ -120,6 +127,6 @@ def fire(self, delta_time):
     def reset_shoot():
         self.can_shoot = True
 
-    self.game.add_wait(self.stats["Tears"] / 10, reset_shoot)
+    self.game.add_timer(self.stats["Tears"] / 10, reset_shoot)
 
     self.on_fire.dispatch(self, tear)

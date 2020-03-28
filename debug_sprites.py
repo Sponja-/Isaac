@@ -13,7 +13,7 @@ class colors:
     DARK_RED = (128, 16, 16)
 
 
-class RectangleSprite(pg.sprite.Sprite):
+class RectSprite(pg.sprite.Sprite):
     def __init__(self, color, size):
         super().__init__()
         size = (int(size[0]), int(size[1]))

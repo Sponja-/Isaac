@@ -202,9 +202,9 @@ class RectCollider(ICollider):
 
     def is_colliding(self, other):
         if type(other) is RectCollider:
-            return detectCollisionRectRect(self, other)
+            return detect_collision_RectRect(self, other)
         if type(other) is CircleCollider:
-            return detectCollisionRectCircle(self, other)
+            return detect_collision_RectCircle(self, other)
 
 
 class CircleCollider(ICollider):
@@ -231,44 +231,44 @@ class CircleCollider(ICollider):
 
     def is_colliding(self, other):
         if type(other) is RectCollider:
-            return detectCollisionRectCircle(other, self)
+            return detect_collision_RectCircle(other, self)
         if type(other) is CircleCollider:
-            return detectCollisionCircleCircle(self, other)
+            return detect_collision_CircleCircle(self, other)
 
 
 def clamp(n, low, high):
     return max(low, min(n, high))
 
 
-def findClosest(r, c):
+def find_closest(r, c):
     closest_point = copy(c.center())
     closest_point.x = clamp(closest_point.x, r.top_left().x, r.top_left().x + r.width)
     closest_point.y = clamp(closest_point.y, r.top_left().y, r.top_left().y + r.height)
     return closest_point
 
 
-def detectCollisionRectRect(r1, r2):
+def detect_collision_RectRect(r1, r2):
     return (r1.top_left().x < r2.top_left().x + r2.width and
             r1.top_left().x + r1.width > r2.top_left().x and
             r1.top_left().y < r2.top_left().y + r2.height and
             r1.top_left().y + r1.height > r2.top_left().y)
 
 
-def detectCollisionCircleCircle(c1, c2):
+def detect_collision_CircleCircle(c1, c2):
     return (c1.center() - c2.center()).sqr_magnitude() <= (c1.radius + c2.radius) ** 2
 
 
-def detectCollisionRectCircle(r, c):
-    return (findClosest(r, c) - c.center()).sqr_magnitude() <= c.radius ** 2
+def detect_collision_RectCircle(r, c):
+    return (find_closest(r, c) - c.center()).sqr_magnitude() <= c.radius ** 2
 
 
 #  Returns (normal, penetration)
-def resolveCollisionCircleCircle(c1, c2):
+def resolve_collision_CircleCircle(c1, c2):
     vec = c1.center() - c2.center()
     return (vec, c1.radius + c2.radius - vec.magnitude())
 
 
-def resolveCollisionRectRect(r1, r2):
+def resolve_collision_RectRect(r1, r2):
     vec = r2.top_left() - r1.top_left()
     x_overlap = r1.width / 2 + r2.width / 2 - abs(vec.x)
     y_overlap = r1.height / 2 + r2.height / 2 - abs(vec.y)
@@ -287,11 +287,11 @@ def resolveCollisionRectRect(r1, r2):
     return (normal, penetration)
 
 
-def resolveCollisionRectCircle(r, c):
+def resolve_collision_RectCircle(r, c):
     rect_center = r.center()
 
     difference = c.center() - rect_center
-    closest = findClosest(r, c)
+    closest = find_closest(r, c)
 
     if closest == c.center():
         inside = True
@@ -319,16 +319,16 @@ def resolveCollision(a, b, delta_time):
         return
     if type(a.collider) is RectCollider:
         if type(b.collider) is RectCollider:
-            normal, penetration = resolveCollisionRectRect(a.collider, b.collider)
+            normal, penetration = resolve_collision_RectRect(a.collider, b.collider)
         elif type(b.collider) is CircleCollider:
-            normal, penetration = resolveCollisionRectCircle(a.collider, b.collider)
+            normal, penetration = resolve_collision_RectCircle(a.collider, b.collider)
             circle = False
     elif type(a.collider) is CircleCollider:
         if type(b.collider) is CircleCollider:
-            normal, penetration = resolveCollisionCircleCircle(a.collider, b.collider)
+            normal, penetration = resolve_collision_CircleCircle(a.collider, b.collider)
             circle = True
         elif type(b.collider) is RectCollider:
-            normal, penetration = resolveCollisionRectCircle(b.collider, a.collider)
+            normal, penetration = resolve_collision_RectCircle(b.collider, a.collider)
             normal *= -1
             circle = False
 

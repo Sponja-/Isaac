@@ -2,9 +2,12 @@
 	{
 		"objects": [
 			{
-				"position": [2, 2],
 				"type": "Rock",
-				"params": {}
+				"position": [2, 2]
+			},
+			{
+				"type": "Fly",
+				"position": [19, 4]
 			}
 		],
 		"neighbors": [

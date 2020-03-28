@@ -4,7 +4,8 @@ from player import Player
 from debug_sprites import colors
 import rocks
 import pickups
-from rooms import MapGenerator, room_width, room_height
+import enemy
+import rooms
 import globals
 import layers
 import physics
@@ -22,10 +23,14 @@ class Game:
         self.objects = []
         self.sprites = pg.sprite.Group()
 
-        self.waits = []
+        self.timers = []
 
-        self.floor_generator = MapGenerator()
+        self.floor_generator = rooms.MapGenerator()
         self.floor_generator.generate_map(20, 4)
+
+        self.player = Player(position=(self.width / 2, self.height / 2))
+        self.current_room = None
+        self.enemy_count = 0
 
         self.load_room(position=(0, 0))
 
@@ -50,10 +55,11 @@ class Game:
 
             current_time = self.get_time()
 
-            for i, (time, function, args) in enumerate(self.waits):
+            for i, (time, function, args) in enumerate(self.timers):
                 if time <= current_time:
-                    function(*args)
-                    self.waits.pop(i)
+                    result = function(*args)
+                    if not result:
+                        self.timers.pop(i)
 
             self.screen.fill(colors.WHITE)
 
@@ -66,20 +72,37 @@ class Game:
 
     def load_room(self, *, position=None, direction=None):
         if position is None:
-            offset = MapGenerator.neighbor_offsets[direction]
+            offset = rooms.MapGenerator.neighbor_offsets[direction]
             position = (self.current_room.position[0] + offset[0],
                         self.current_room.position[1] + offset[1])
         index = self.floor_generator.positions[position]
 
+        if self.current_room is not None:
+            self.exit_room()
+
         self.current_room = self.floor_generator.rooms[index]
 
-        self.sprites.empty()
-        self.objects.clear()
+        self.player.body.collider.move_to((self.width / 2, self.height / 2))
+
+        self.add(self.player)
 
         for obj in self.current_room.objects:
             self.add(obj)
 
-        self.add(Player(position=(self.width / 2, self.height / 2)))
+        if self.enemy_count > 0:
+            self.close_doors()
+            self.room_completed = False
+        else:
+            self.room_completed = True
+
+    def exit_room(self):
+        if self.room_completed:
+            self.current_room.objects = [obj for obj in self.objects
+                                         if type(obj) is not Player]
+
+        self.sprites.empty()
+        self.objects.clear()
+        self.enemy_count = 0
 
     def compute_collisions(self, delta_time):
         for i, obj in enumerate(self.objects):
@@ -99,13 +122,41 @@ class Game:
         if obj.sprite is not None:
             self.sprites.add(obj.sprite)
 
+        if obj.layer == layers.ENEMIES:
+            self.enemy_count += 1
+
     def get_time(self):
         return pg.time.get_ticks() / 1000
 
-    def add_wait(self, time, function, args=()):
-        self.waits.append((self.get_time() + time, function, args))
+    def add_timer(self, time, function, args=()):
+        self.timers.append((self.get_time() + time, function, args))
+
+    def find_object(self, tag):
+        for obj in self.objects:
+            if tag in obj.tags:
+                return obj
+
+    def find_objects(self, tag):
+        return [obj for obj in self.objects if tag in obj.tags]
+
+    def enemy_died(self):
+        self.enemy_count -= 1
+        if self.enemy_count <= 0:
+            self.open_doors()
+            self.room_completed = True
+
+    def close_doors(self):
+        for obj in self.objects:
+            if type(obj) is rooms.Door:
+                obj.enabled = False
+
+    def open_doors(self):
+        for obj in self.objects:
+            if type(obj) is rooms.Door:
+                obj.enabled = True
 
 
-game = Game((globals.TILE_SIZE * room_width, globals.TILE_SIZE * room_height))
+game = Game((globals.TILE_SIZE * rooms.room_width,
+             globals.TILE_SIZE * rooms.room_height))
 
 game.run()

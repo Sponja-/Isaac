@@ -7,6 +7,8 @@ class GameObject:
         instance.to_kill = False
         instance.body = None
         instance.sprite = None
+        instance.layer = None
+        instance.tags = []
         instance.on_mount = Event("mount")
         instance.on_update = Event("update")
         instance.on_physics_update = Event("physics_update")

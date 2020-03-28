@@ -1,6 +1,6 @@
 from game_object import GameObject
-from physics import RigidBody, RectCollider, CircleCollider
-from debug_sprites import RectangleSprite, CircleSprite, colors
+from physics import RigidBody, RectCollider
+from debug_sprites import RectSprite, colors
 from globals import types, TILE_SIZE
 import layers
 
@@ -12,7 +12,7 @@ class Rock(GameObject):
                               size=(TILE_SIZE, TILE_SIZE),
                               mass=0)
 
-        self.sprite = RectangleSprite(colors.BLACK, self.body.collider.size())
+        self.sprite = RectSprite(colors.BLACK, self.body.collider.size())
 
         self.layer = layers.OBSTACLES
 

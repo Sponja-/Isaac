@@ -33,7 +33,7 @@ class PlayerTear(GameObject):
 
 def collision(self, other):
     if other.layer == layers.ENEMIES:
-        other.do_damage(self.damage)
+        other.damage(self.damage)
         self.kill()
     if other.layer == layers.OBSTACLES:
         self.kill()

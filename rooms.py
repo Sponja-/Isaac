@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from game_object import GameObject
 from physics import RigidBody, RectCollider, Vector
-from debug_sprites import colors, RectangleSprite
+from debug_sprites import colors, RectSprite
 from globals import TILE_SIZE, types
 import layers
 import os
@@ -49,7 +49,7 @@ class Door(GameObject):
                               size=size,
                               mass=0)
 
-        self.sprite = RectangleSprite(colors.BLACK, size)
+        self.sprite = RectSprite(colors.BLACK, size)
 
         self.layer = layers.OBSTACLES
 
@@ -80,7 +80,7 @@ class Room:
 
         for obj in template["objects"]:
             self.objects.append(types[obj["type"]](position=Vector(*obj["position"]) * TILE_SIZE,
-                                                   **obj["params"]))
+                                                   **obj.get("params", {})))
 
         for direction in MapGenerator.directions:
             if neighbors[direction]:
