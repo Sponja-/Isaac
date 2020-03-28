@@ -79,7 +79,8 @@ class Room:
             return False
 
         for obj in template["objects"]:
-            self.objects.append(types[obj["type"]](position=Vector(*obj["position"]) * TILE_SIZE,
+            self.objects.append(types[obj["type"]](position=Vector(*obj["position"]) * TILE_SIZE
+                                                   + (TILE_SIZE / 2, TILE_SIZE / 2),
                                                    **obj.get("params", {})))
 
         for direction in MapGenerator.directions:

@@ -332,7 +332,7 @@ def resolveCollision(a, b, delta_time):
             normal *= -1
             circle = False
 
-    percent = 2 if circle else 6
-    correction = (penetration / (a.inverse_mass + b.inverse_mass)) * percent * normal
+    k = 2 if circle else 6
+    correction = (penetration / (a.inverse_mass + b.inverse_mass)) * k * normal
     a.collider.move(a.inverse_mass * correction * delta_time)
     b.collider.move(-b.inverse_mass * correction * delta_time)

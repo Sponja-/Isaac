@@ -39,6 +39,7 @@ class Player(GameObject):
         self.on_fire = Event("fire")
         self.on_heal = Event("heal")
         self.on_damage = Event("damage")
+        self.on_enemy_kill = Event("enemy_kill")
 
         self.on_update += move
         self.on_update += fire
@@ -106,16 +107,20 @@ def fire(self, delta_time):
     keys = pg.key.get_pressed()
 
     shot_speed = self.stats["Shot Speed"]
+    player_v = self.body.velocity / 300
     if keys[pg.K_UP]:
-        velocity = Vector(0, -shot_speed)
+        velocity = Vector(0, -1) + (player_v.x, 0)
     elif keys[pg.K_DOWN]:
-        velocity = Vector(0, shot_speed)
+        velocity = Vector(0, 1) + (player_v.x, 0)
     elif keys[pg.K_LEFT]:
-        velocity = Vector(-shot_speed, 0)
+        velocity = Vector(-1, 0) + (0, player_v.y)
     elif keys[pg.K_RIGHT]:
-        velocity = Vector(shot_speed, 0)
+        velocity = Vector(1, 0) + (0, player_v.y)
     else:
         return
+
+    velocity.normalize()
+    velocity *= shot_speed
 
     tear = PlayerTear(position=self.body.collider.center(),
                       velocity=velocity,

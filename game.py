@@ -2,7 +2,7 @@ import pygame as pg
 from sys import exit
 from player import Player
 from debug_sprites import colors
-import rocks
+import obstacles
 import pickups
 import enemy
 import rooms
@@ -96,9 +96,12 @@ class Game:
             self.room_completed = True
 
     def exit_room(self):
+
         if self.room_completed:
             self.current_room.objects = [obj for obj in self.objects
-                                         if type(obj) is not Player]
+                                         if type(obj) is not Player and
+                                         obj.layer != layers.PLAYER_TEARS and
+                                         obj.layer != layers.ENEMY_TEARS]
 
         self.sprites.empty()
         self.objects.clear()

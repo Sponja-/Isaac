@@ -18,6 +18,7 @@ class Enemy(GameObject):
 
         if self.health <= 0:
             self.kill()
+            self.game.player.on_enemy_kill.dispatch(self)
 
 
 def enemy_damage(self, other):
@@ -30,7 +31,7 @@ class Fly(Enemy):
         super().__init__(health=100.0)
         self.body = RigidBody(collider=CircleCollider,
                               position=position,
-                              radius=5,
+                              radius=10,
                               mass=1,
                               damping=2)
 
