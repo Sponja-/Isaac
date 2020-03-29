@@ -1,13 +1,14 @@
 from random import random, randint, choice
+from itertools import zip_longest
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+import json
 from game_object import GameObject
 from physics import RigidBody, RectCollider, Vector
 from debug_sprites import colors, RectSprite
 from globals import TILE_SIZE, types
 import layers
-import os
-import json
 
 room_size = room_width, room_height = (20, 15)
 
@@ -23,12 +24,11 @@ mirror = {
     LEFT: RIGHT
 }
 
-templates = []
+templates = {}
 
 for file_name in os.listdir("templates"):
-    print(f"Loading templates from {file_name}")
     with open(os.path.join("templates", file_name), 'r') as file:
-        templates.extend(json.load(file))
+        templates[os.path.basename(file_name).split('.')[0]] = json.load(file)
 
 
 class Door(GameObject):
@@ -70,12 +70,13 @@ class Room:
     def __init__(self, position):
         self.position = position
         self.objects = []
+        self.type = "normal"
 
     def populate(self, neighbors):
-        template = choice(templates)
-        if not all(available or not actual
-                   for available, actual
-                   in zip(template["neighbors"], neighbors)):
+        template = choice(templates[self.type])
+        if "neighbors" in template and not all(available or not actual
+                                               for available, actual
+                                               in zip(template["neighbors"], neighbors)):
             return False
 
         for obj in template["objects"]:
@@ -96,6 +97,7 @@ class Room:
 class DeadendRoom(Room):
     def __init__(self, position):
         super().__init__(position)
+        self.type = None
 
 
 class MapGenerator:
@@ -105,7 +107,6 @@ class MapGenerator:
     def __init__(self, **kwargs):
         self.rooms = [Room((0, 0))]
         self.positions = {(0, 0): 0}
-        self.deadend_sorted_lengths = []
 
     def get_surrounding(self, position):
         return [self.positions.get((position[0] + offset[0],
@@ -172,12 +173,26 @@ class MapGenerator:
 
     def add_deadends(self, amount):
         start_len = len(self.rooms)
+        sorted_distances = []
+
         while len(self.rooms) - amount < start_len:
             new_room = self.new_deadend()
             while new_room is None:
                 new_room = self.new_deadend()
             self.positions[new_room.position] = len(self.rooms)
+            current_distance = new_room.position[0] + new_room.position[1]
+            for i, (distance, room) in enumerate(sorted_distances):
+                if distance < current_distance:
+                    sorted_distances.insert(i, (current_distance, new_room))
+                    break
+            else:
+                sorted_distances.append((current_distance, new_room))
             self.rooms.append(new_room)
+
+        types = ['boss', 'shop', 'gold']
+
+        for (_, room), type in zip_longest(sorted_distances, types, fillvalue="normal"):
+            room.type = type
 
     def populate_rooms(self):
         for room in self.rooms:

@@ -2,6 +2,7 @@ import pygame as pg
 from sys import exit
 from player import Player
 from debug_sprites import colors
+from game_object import Event
 import obstacles
 import pickups
 import enemy
@@ -31,6 +32,9 @@ class Game:
         self.player = Player(position=(self.width / 2, self.height / 2))
         self.current_room = None
         self.enemy_count = 0
+
+        self.on_room_complete = Event("room_complete")
+        self.on_room_complete += complete_room
 
         self.load_room(position=(0, 0))
 
@@ -81,6 +85,7 @@ class Game:
             self.exit_room()
 
         self.current_room = self.floor_generator.rooms[index]
+        print(self.current_room.type)
 
         self.player.body.collider.move_to((self.width / 2, self.height / 2))
 
@@ -145,8 +150,7 @@ class Game:
     def enemy_died(self):
         self.enemy_count -= 1
         if self.enemy_count <= 0:
-            self.open_doors()
-            self.room_completed = True
+            self.on_room_complete.dispatch(self)
 
     def close_doors(self):
         for obj in self.objects:
@@ -157,6 +161,11 @@ class Game:
         for obj in self.objects:
             if type(obj) is rooms.Door:
                 obj.enabled = True
+
+
+def complete_room(self):
+    self.open_doors()
+    self.room_completed = True
 
 
 game = Game((globals.TILE_SIZE * rooms.room_width,

@@ -1,0 +1,14 @@
+[
+{
+	"objects": [
+		{
+			"type": "Rock",
+			"position": [2, 2]
+		},
+		{
+			"type": "Fly",
+			"position": [19, 4]
+		}
+	]
+}
+]

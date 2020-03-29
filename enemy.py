@@ -5,6 +5,10 @@ from globals import types
 import layers
 
 
+def normal_direction(frm, to):
+    return (to.body.collider.center() - frm.body.collider.center()).normal()
+
+
 class Enemy(GameObject):
     def __init__(self, *, health):
         self.layer = layers.ENEMIES
@@ -18,7 +22,7 @@ class Enemy(GameObject):
 
         if self.health <= 0:
             self.kill()
-            self.game.player.on_enemy_kill.dispatch(self)
+            self.game.player.on_enemy_kill.dispatch(self.game.player, self)
 
 
 def enemy_damage(self, other):
@@ -43,7 +47,7 @@ class Fly(Enemy):
 
 def fly_ai(self, delta_time):
     player = self.game.player
-    vec = (player.body.collider.center() - self.body.collider.center()).normal()
+    vec = normal_direction(self, player)
     self.body.add_force(vec * self.speed)
 
 
