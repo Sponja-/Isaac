@@ -10,6 +10,8 @@ import rooms
 import globals
 import layers
 import physics
+from random import seed
+from argparse import ArgumentParser
 
 pg.init()
 
@@ -168,7 +170,16 @@ def complete_room(self):
     self.room_completed = True
 
 
-game = Game((globals.TILE_SIZE * rooms.room_width,
-             globals.TILE_SIZE * rooms.room_height))
+if __name__ == "__main__":
+    parser = ArgumentParser(description="Binding of Isaac clone")
+    parser.add_argument('-s', type=int, help="Game seed")
 
-game.run()
+    args = parser.parse_args()
+
+    if args.s is not None:
+        seed(args.s)
+
+    game = Game((globals.TILE_SIZE * rooms.room_width,
+                 globals.TILE_SIZE * rooms.room_height))
+
+    game.run()

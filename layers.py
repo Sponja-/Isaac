@@ -4,7 +4,6 @@ ENEMIES = 2
 OBSTACLES = 3
 PLAYER_TEARS = 4
 ENEMY_TEARS = 5
-FLYING_ENEMIES = 6
 
 
 collisions = {

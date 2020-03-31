@@ -38,9 +38,11 @@ class Player(GameObject):
         self.on_move = Event("move")
         self.on_fire = Event("fire")
         self.on_heal = Event("heal")
+        self.on_stat_change = Event("stat_change")
         self.on_damage = Event("damage")
         self.on_enemy_kill = Event("enemy_kill")
 
+        self.on_update += register_keys
         self.on_update += move
         self.on_update += fire
 
@@ -70,26 +72,50 @@ class Player(GameObject):
         return True
 
     def heal(self, amount):
-        self.health += amount
+        if self.health + amount > self.stats["Max Health"]:
+            self.health = self.stats["Max Health"]
+        else:
+            self.health += amount
+
         self.on_heal.dispatch(self, amount)
+
+    def set_stat(self, name, amount, *, mode="set"):
+        if mode == "set":
+            self.stats[name] = amount
+        elif mode == "add":
+            self.stats[name] += amount
+
+
+def register_keys(self, delta_time):
+    keys = pg.key.get_pressed()
+    self.keys = {}
+    self.keys['w'] = keys[pg.K_w]
+    self.keys['a'] = keys[pg.K_a]
+    self.keys['s'] = keys[pg.K_s]
+    self.keys['d'] = keys[pg.K_d]
+    self.keys["up"] = keys[pg.K_UP]
+    self.keys["down"] = keys[pg.K_DOWN]
+    self.keys["left"] = keys[pg.K_LEFT]
+    self.keys["right"] = keys[pg.K_RIGHT]
+    self.keys["q"] = keys[pg.K_q]
+    self.keys["space"] = keys[pg.K_SPACE]
 
 
 def move(self, delta_time):
-    keys = pg.key.get_pressed()
     movement_axes = 0
     move_force = Vector(0, 0)
     speed = self.stats["Speed"]
 
-    if keys[pg.K_w]:
+    if self.keys['w']:
         movement_axes += 1
         move_force += (0, -speed)
-    elif keys[pg.K_s]:
+    elif self.keys['s']:
         movement_axes += 1
         move_force += (0, speed)
-    if keys[pg.K_a]:
+    if self.keys['a']:
         movement_axes += 1
         move_force += (-speed, 0)
-    elif keys[pg.K_d]:
+    elif self.keys['d']:
         movement_axes += 1
         move_force += (speed, 0)
 
@@ -104,17 +130,16 @@ def move(self, delta_time):
 def fire(self, delta_time):
     if not self.can_shoot:
         return
-    keys = pg.key.get_pressed()
 
     shot_speed = self.stats["Shot Speed"]
     player_v = self.body.velocity / 300
-    if keys[pg.K_UP]:
+    if self.keys["up"]:
         velocity = Vector(0, -1) + (player_v.x, 0)
-    elif keys[pg.K_DOWN]:
+    elif self.keys["down"]:
         velocity = Vector(0, 1) + (player_v.x, 0)
-    elif keys[pg.K_LEFT]:
+    elif self.keys["left"]:
         velocity = Vector(-1, 0) + (0, player_v.y)
-    elif keys[pg.K_RIGHT]:
+    elif self.keys["right"]:
         velocity = Vector(1, 0) + (0, player_v.y)
     else:
         return

@@ -10,5 +10,13 @@
 			"position": [19, 4]
 		}
 	]
+},
+{
+	"objects": [
+		{
+			"type": "Fly",
+			"position": [5, 5]
+		}
+	]
 }
 ]
