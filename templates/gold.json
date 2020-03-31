@@ -1,5 +1,13 @@
 [
 {
-	"objects": []
+	"objects": [
+		{
+			"type": "Pedestal",
+			"position": [7, 10],
+			"params": {
+				"pool": "gold"
+			}
+		}
+	]
 }
 ]

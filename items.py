@@ -4,6 +4,7 @@ from debug_sprites import CircleSprite, colors
 from abc import ABC, abstractmethod
 from random import randint
 import layers
+from globals import types
 
 
 class Pedestal(GameObject):
@@ -15,6 +16,8 @@ class Pedestal(GameObject):
 
         self.sprite = CircleSprite(colors.YELLOW, 20)
 
+        self.layer = layers.OBSTACLES
+
         if item is not None:
             self.item = item
         else:
@@ -25,7 +28,7 @@ class Pedestal(GameObject):
 
 def pedestal_collide(self, other):
     if other.layer == layers.PLAYER:
-        self.item = other.get_item(self.item)
+        self.item = other.acquire_item(self.item)
         if self.item is None:
             self.kill()
 
@@ -40,9 +43,9 @@ class ItemPool:
     def get(self):
         if self.items:
             i = randint(0, len(self.items) - 1)
-            return self.items.pop(i)
+            return self.items.pop(i)()
         else:
-            return Breakfast
+            return Breakfast()
 
 
 pools = {
@@ -68,7 +71,7 @@ class ItemCreator(type):
                 pools[pool_name].add(self)
 
 
-class Item(ABC, metaclass=ItemCreator):
+class Item(metaclass=ItemCreator):
     @abstractmethod
     def on_pickup(self, player):
         pass
@@ -84,4 +87,8 @@ class Breakfast(Item):
     pools = ["gold", "boss"]
 
     def on_pickup(self, player):
-        player.increase_health(1)
+        player.set_stat("Max Health", 1, mode="add")
+        player.heal(1)
+
+
+types["Pedestal"] = Pedestal

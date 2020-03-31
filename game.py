@@ -10,6 +10,7 @@ import rooms
 import globals
 import layers
 import physics
+import items
 from random import seed
 from argparse import ArgumentParser
 

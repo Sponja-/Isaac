@@ -41,6 +41,7 @@ class Player(GameObject):
         self.on_stat_change = Event("stat_change")
         self.on_damage = Event("damage")
         self.on_enemy_kill = Event("enemy_kill")
+        self.on_acquire_item = Event("acquire_item")
 
         self.on_update += register_keys
         self.on_update += move
@@ -49,6 +50,7 @@ class Player(GameObject):
         self.health = 3
         self.can_shoot = True
         self.invulnerable = False
+        self.items = []
 
     def damage(self, amount=.5):
         if self.invulnerable:
@@ -80,10 +82,18 @@ class Player(GameObject):
         self.on_heal.dispatch(self, amount)
 
     def set_stat(self, name, amount, *, mode="set"):
+        prev = self.stats[name]
+
         if mode == "set":
             self.stats[name] = amount
         elif mode == "add":
             self.stats[name] += amount
+
+        self.on_stat_change.dispatch(self, name, prev, self.stats[name])
+
+    def acquire_item(self, item):
+        self.items.append(item)
+        item.on_pickup(self)
 
 
 def register_keys(self, delta_time):
