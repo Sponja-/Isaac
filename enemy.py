@@ -5,7 +5,7 @@ from globals import types
 import layers
 
 
-def normal_direction(frm, to):
+def normalized_direction(frm, to):
     return (to.body.collider.center() - frm.body.collider.center()).normal()
 
 
@@ -47,7 +47,7 @@ class Fly(Enemy):
 
 def fly_ai(self, delta_time):
     player = self.game.player
-    vec = normal_direction(self, player)
+    vec = normalized_direction(self, player)
     self.body.add_force(vec * self.speed)
 
 

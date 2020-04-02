@@ -38,11 +38,35 @@ class Door(GameObject):
         Vector(room_width * TILE_SIZE, room_height * TILE_SIZE / 2),
         Vector(0, room_height * TILE_SIZE / 2)
     ]
-    size = (2 * TILE_SIZE, TILE_SIZE / 4)
+    size = (2 * TILE_SIZE, int(TILE_SIZE / 4))
 
     def __init__(self, direction):
         position = Door.positions[direction]
         size = Door.size if direction in (DOWN, UP) else Door.size[::-1]
+
+        self.body = RigidBody(collider=RectCollider,
+                              position=position,
+                              size=size,
+                              mass=0)
+
+        self.sprite = RectSprite(colors.WHITE, size)
+
+        self.layer = layers.OBSTACLES
+
+        self.direction = direction
+
+        self.enabled = True
+
+        self.on_collide += enter_door
+
+
+class Wall(GameObject):
+    vertical_size = (TILE_SIZE / 4 - 5, room_height * TILE_SIZE)
+    horizontal_size = (room_width * TILE_SIZE, TILE_SIZE / 4 - 5)
+
+    def __init__(self, direction):
+        position = Door.positions[direction]
+        size = Wall.horizontal_size if direction in (DOWN, UP) else Wall.vertical_size
 
         self.body = RigidBody(collider=RectCollider,
                               position=position,
@@ -54,10 +78,6 @@ class Door(GameObject):
         self.layer = layers.OBSTACLES
 
         self.direction = direction
-
-        self.enabled = True
-
-        self.on_collide += enter_door
 
 
 def enter_door(self, player):
@@ -86,6 +106,7 @@ class Room:
 
         self.door_directions = []
         for direction in MapGenerator.directions:
+            self.objects.append(Wall(direction))
             if neighbors[direction]:
                 self.door_directions.append(direction)
                 self.objects.append(Door(direction))

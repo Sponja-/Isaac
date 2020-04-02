@@ -9,7 +9,8 @@ class Pickup(GameObject):
     def __init__(self, position, sprite, **kwargs):
         self.body = RigidBody(collider=CircleCollider,
                               position=position,
-                              radius=10)
+                              radius=10,
+                              mass=.2)
         self.sprite = sprite
         self.layer = layers.PICKUPS
 

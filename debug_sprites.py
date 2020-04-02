@@ -11,6 +11,7 @@ class colors:
     GRAY = (128, 128, 128)
     LIGHT_GRAY = (192, 192, 192)
     DARK_RED = (128, 16, 16)
+    BROWN = (165, 42, 42)
 
 
 class RectSprite(pg.sprite.Sprite):
