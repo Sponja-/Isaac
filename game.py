@@ -2,6 +2,7 @@ import pygame as pg
 from sys import exit
 from player import Player
 from debug_sprites import colors
+from physics import Vector, resolveCollision
 from game_object import Event
 import obstacles
 import pickups
@@ -9,9 +10,8 @@ import enemy
 import rooms
 import globals
 import layers
-import physics
 import items
-from random import seed
+from random import seed, choice
 from argparse import ArgumentParser
 
 pg.init()
@@ -78,19 +78,26 @@ class Game:
             self.clock.tick(60)
 
     def load_room(self, *, position=None, direction=None):
+        player_pos = None
+
         if position is None:
             offset = rooms.MapGenerator.neighbor_offsets[direction]
             position = (self.current_room.position[0] + offset[0],
                         self.current_room.position[1] + offset[1])
+            player_pos = rooms.player_room_positions[rooms.mirror[direction]]
         index = self.floor_generator.positions[position]
 
         if self.current_room is not None:
             self.exit_room()
+        else:
+            player_pos = Vector(self.width / 2, self.height / 2)
 
         self.current_room = self.floor_generator.rooms[index]
-        print(self.current_room.type)
 
-        self.player.body.collider.move_to((self.width / 2, self.height / 2))
+        if player_pos is None:
+            player_pos = rooms.player_room_positions[choice(self.current_room.door_directions)]
+
+        self.player.body.collider.move_to(player_pos)
 
         self.add(self.player)
 
@@ -122,7 +129,7 @@ class Game:
                     if obj.body.collider.is_colliding(other.body.collider):
                         obj.collide(other)
                         other.collide(obj)
-                        physics.resolveCollision(obj.body, other.body, delta_time)
+                        resolveCollision(obj.body, other.body, delta_time)
 
     def add(self, obj):
         obj.game = self

@@ -33,10 +33,10 @@ for file_name in os.listdir("templates"):
 
 class Door(GameObject):
     positions = [
-        (room_width * TILE_SIZE / 2, room_height * TILE_SIZE),
-        (room_width * TILE_SIZE / 2, 0),
-        (room_width * TILE_SIZE, room_height * TILE_SIZE / 2),
-        (0, room_height * TILE_SIZE / 2)
+        Vector(room_width * TILE_SIZE / 2, room_height * TILE_SIZE),
+        Vector(room_width * TILE_SIZE / 2, 0),
+        Vector(room_width * TILE_SIZE, room_height * TILE_SIZE / 2),
+        Vector(0, room_height * TILE_SIZE / 2)
     ]
     size = (2 * TILE_SIZE, TILE_SIZE / 4)
 
@@ -84,8 +84,10 @@ class Room:
                                                    + (TILE_SIZE / 2, TILE_SIZE / 2),
                                                    **obj.get("params", {})))
 
+        self.door_directions = []
         for direction in MapGenerator.directions:
             if neighbors[direction]:
+                self.door_directions.append(direction)
                 self.objects.append(Door(direction))
 
         return True
@@ -221,3 +223,10 @@ if __name__ == "__main__":
 
     plt.imshow(img)
     plt.show()
+
+
+player_room_positions = [
+    Door.positions[direction] +
+    Vector(*MapGenerator.neighbor_offsets[mirror[direction]]) * int(TILE_SIZE * 1.5)
+    for direction in MapGenerator.directions
+]

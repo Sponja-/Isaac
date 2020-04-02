@@ -218,7 +218,7 @@ class CircleCollider(ICollider):
 
     @vector_argument
     def move_to(self, new_center):
-        self._position = new_center
+        self._position = copy(new_center)
 
     def top_left(self):
         return self._position - (self.radius, self.radius)
