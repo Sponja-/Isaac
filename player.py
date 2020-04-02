@@ -3,6 +3,7 @@ from game_object import GameObject, Event
 from physics import RigidBody, Vector, CircleCollider
 from debug_sprites import CircleSprite,  colors
 from tears import PlayerTear
+from bombs import PlacedBomb
 import layers
 
 SQRT_2 = 2 ** .5
@@ -14,7 +15,8 @@ class Player(GameObject):
         self.body = RigidBody(collider=CircleCollider,
                               position=position,
                               radius=20,
-                              damping=3.5)
+                              damping=3.5,
+                              is_player=True)
 
         self.sprite = CircleSprite(colors.BLACK, self.body.collider.radius)
         self.layer = layers.PLAYER
@@ -31,7 +33,7 @@ class Player(GameObject):
 
         self.pickups = {
             "Coins": 0,
-            "Bombs": 0,
+            "Bombs": 99,
             "Keys": 0
         }
 
@@ -46,9 +48,11 @@ class Player(GameObject):
         self.on_update += register_keys
         self.on_update += move
         self.on_update += fire
+        self.on_update += bomb_place
 
         self.health = 3
         self.can_shoot = True
+        self.can_place_bomb = True
         self.invulnerable = False
         self.items = []
 
@@ -108,6 +112,7 @@ def register_keys(self, delta_time):
     self.keys["left"] = keys[pg.K_LEFT]
     self.keys["right"] = keys[pg.K_RIGHT]
     self.keys["q"] = keys[pg.K_q]
+    self.keys["e"] = keys[pg.K_e]
     self.keys["space"] = keys[pg.K_SPACE]
 
 
@@ -170,3 +175,16 @@ def fire(self, delta_time):
     self.game.add_timer(self.stats["Tears"] / 10, reset_shoot)
 
     self.on_fire.dispatch(self, tear)
+
+
+def bomb_place(self, delta_time):
+    if self.can_place_bomb and self.keys['e'] and self.pickups["Bombs"] > 0:
+        self.can_place_bomb = False
+        self.pickups["Bombs"] -= 1
+
+        def reset_bomb_place():
+            self.can_place_bomb = True
+
+        self.game.add_timer(3, reset_bomb_place)
+
+        self.game.add(PlacedBomb(position=self.body.collider.center()))

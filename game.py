@@ -46,6 +46,9 @@ class Game:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     exit()
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_f:
+                        self.player.body.collider.move_to((self.width / 2, self.height / 2))
 
             delta_time = self.clock.get_time() / 1000
 
@@ -89,13 +92,12 @@ class Game:
 
         if self.current_room is not None:
             self.exit_room()
-        else:
+            if direction is None:
+                player_pos = rooms.player_room_positions[choice(self.current_room.door_directions)]
+        else:  # First room in floor
             player_pos = Vector(self.width / 2, self.height / 2)
 
         self.current_room = self.floor_generator.rooms[index]
-
-        if player_pos is None:
-            player_pos = rooms.player_room_positions[choice(self.current_room.door_directions)]
 
         self.player.body.collider.move_to(player_pos)
 
@@ -111,7 +113,6 @@ class Game:
             self.room_completed = True
 
     def exit_room(self):
-
         if self.room_completed:
             self.current_room.objects = [obj for obj in self.objects
                                          if type(obj) is not Player and

@@ -1,12 +1,8 @@
 from game_object import GameObject
-from physics import RigidBody, CircleCollider
+from physics import RigidBody, CircleCollider, normalized_direction
 from debug_sprites import CircleSprite, colors
 from globals import types
 import layers
-
-
-def normalized_direction(frm, to):
-    return (to.body.collider.center() - frm.body.collider.center()).normal()
 
 
 class Enemy(GameObject):
@@ -15,19 +11,23 @@ class Enemy(GameObject):
         self.health = health
 
         self.on_collide += enemy_damage
-        self.on_kill += lambda self: self.game.enemy_died()
+        self.on_kill += enemy_kill
 
     def damage(self, amount):
         self.health -= amount
 
         if self.health <= 0:
             self.kill()
-            self.game.player.on_enemy_kill.dispatch(self.game.player, self)
 
 
 def enemy_damage(self, other):
     if other.layer == layers.PLAYER:
         other.damage()
+
+
+def enemy_kill(self):
+    self.game.enemy_died()
+    self.game.player.on_enemy_kill.dispatch(self.game.player, self)
 
 
 class Fly(Enemy):

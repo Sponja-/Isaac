@@ -17,14 +17,14 @@ class GameObject:
         return instance
 
     def physics_update(self, delta_time):
-        if self.body is not None:
-            self.body.update(delta_time)
-
         if self.sprite is not None:
             if self.body is not None:
                 point = self.sprite_top_left()
                 self.sprite.rect.x = int(point.x)
                 self.sprite.rect.y = int(point.y)
+
+        if self.body is not None:
+            self.body.update(delta_time)
 
         self.on_physics_update.dispatch(self, delta_time)
 
@@ -53,6 +53,7 @@ class GameObject:
 
 class Event:
     def __init__(self, name):
+        self.name = name
         self.handlers = OrderedDict()
 
     def __iadd__(self, handler):

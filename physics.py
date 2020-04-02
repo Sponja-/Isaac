@@ -128,6 +128,7 @@ class RigidBody(IBody):
         self.inverse_mass = 1 / kwargs.get("mass", 1.0) if mass != 0 else 0
         self.damping = kwargs.get("damping", 0.5)
         self.disable_collide = kwargs.get("disable_collide", False)
+        self.is_player = kwargs.get("is_player", False)
 
     def update(self, delta_time):
         self.velocity += delta_time * self.total_force * self.inverse_mass
@@ -336,3 +337,7 @@ def resolveCollision(a, b, delta_time):
     correction = (penetration / (a.inverse_mass + b.inverse_mass)) * k * normal
     a.collider.move(a.inverse_mass * correction * delta_time)
     b.collider.move(-b.inverse_mass * correction * delta_time)
+
+
+def normalized_direction(frm, to):
+    return (to.body.collider.center() - frm.body.collider.center()).normal()

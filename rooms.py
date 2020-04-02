@@ -58,6 +58,17 @@ class Door(GameObject):
         self.enabled = True
 
         self.on_collide += enter_door
+        self.on_mount += door_mount
+
+
+def door_mount(self):
+    self.disable_collide = False
+
+
+def enter_door(self, player):
+    if player.layer == layers.PLAYER and self.enabled:
+        self.body.disable_collide = True
+        self.game.load_room(direction=self.direction)
 
 
 class Wall(GameObject):
@@ -78,12 +89,6 @@ class Wall(GameObject):
         self.layer = layers.OBSTACLES
 
         self.direction = direction
-
-
-def enter_door(self, player):
-    if player.layer == layers.PLAYER and self.enabled:
-        self.body.disable_collide = True
-        self.game.load_room(direction=self.direction)
 
 
 class Room:
