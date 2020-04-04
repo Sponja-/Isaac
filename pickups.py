@@ -2,6 +2,7 @@ from game_object import GameObject
 from physics import RigidBody, CircleCollider
 from debug_sprites import CircleSprite, colors
 from globals import types
+import health
 import layers
 
 
@@ -15,8 +16,8 @@ class Pickup(GameObject):
         self.layer = layers.PICKUPS
 
         def do_pickup(self, player):
-            self.action(player)
-            self.kill()
+            if not self.action(player):
+                self.kill()
 
         self.on_collide += do_pickup
 
@@ -53,7 +54,7 @@ class Heart(Pickup):
         super().__init__(position, CircleSprite(colors.DARK_RED, 10))
 
     def action(self, player):
-        player.heal(1.0)
+        return not player.heal(health.RED_HEART)
 
 
 types["Key"] = Key

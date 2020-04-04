@@ -1,10 +1,12 @@
 from game_object import GameObject
 from physics import RigidBody, CircleCollider
 from debug_sprites import CircleSprite, colors
-from abc import ABC, abstractmethod
-from random import randint
-import layers
 from globals import types
+import health
+import layers
+
+from abc import abstractmethod
+from random import randint
 
 
 class Pedestal(GameObject):
@@ -87,8 +89,8 @@ class Breakfast(Item):
     pools = ["gold", "boss"]
 
     def on_pickup(self, player):
-        player.set_stat("Max Health", 1, mode="add")
-        player.heal(1)
+        player.add_hearts(1)
+        player.heal(health.RED_HEART)
 
 
 types["Pedestal"] = Pedestal

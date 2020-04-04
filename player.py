@@ -2,6 +2,7 @@ import pygame as pg
 from game_object import GameObject, Event
 from physics import RigidBody, Vector, CircleCollider
 from debug_sprites import CircleSprite,  colors
+from health import PlayerHealth
 from tears import PlayerTear
 from bombs import PlacedBomb
 import layers
@@ -27,8 +28,7 @@ class Player(GameObject):
             "Damage": 50,
             "Shot Speed": 300,
             "Range": 600,
-            "Tears": 10,
-            "Max Health": 3
+            "Tears": 10
         }
 
         self.pickups = {
@@ -40,7 +40,6 @@ class Player(GameObject):
         self.on_move = Event("move")
         self.on_fire = Event("fire")
         self.on_heal = Event("heal")
-        self.on_stat_change = Event("stat_change")
         self.on_damage = Event("damage")
         self.on_enemy_kill = Event("enemy_kill")
         self.on_acquire_item = Event("acquire_item")
@@ -50,17 +49,20 @@ class Player(GameObject):
         self.on_update += fire
         self.on_update += bomb_place
 
-        self.health = 3
+        self.health = PlayerHealth(heart_canisters=3,
+                                   player=self)
         self.can_shoot = True
         self.can_place_bomb = True
         self.invulnerable = False
         self.items = []
 
     def damage(self, amount=.5):
-        if self.invulnerable:
+        stop_damage = self.on_damage.dispatch(self, amount)
+
+        if self.invulnerable or any(stop_damage):
             return False
 
-        self.health -= amount
+        self.health.damage(amount)
         self.invulnerable = True
 
         def reset_invulnerable():
@@ -68,32 +70,16 @@ class Player(GameObject):
 
         self.game.add_timer(INVULNERABLE_TIME, reset_invulnerable)
 
-        self.on_damage.dispatch(self, amount)
-
-        if self.health <= 0:
-            self.kill()
-
-        print(self.health)
-
         return True
 
-    def heal(self, amount):
-        if self.health + amount > self.stats["Max Health"]:
-            self.health = self.stats["Max Health"]
-        else:
-            self.health += amount
+    def heal(self, type):
+        if self.health.heal(type):
+            self.on_heal.dispatch(self, type)
+            return True
+        return False
 
-        self.on_heal.dispatch(self, amount)
-
-    def set_stat(self, name, amount, *, mode="set"):
-        prev = self.stats[name]
-
-        if mode == "set":
-            self.stats[name] = amount
-        elif mode == "add":
-            self.stats[name] += amount
-
-        self.on_stat_change.dispatch(self, name, prev, self.stats[name])
+    def add_hearts(self, amount):
+        self.health.increase_heart_canisters(amount)
 
     def acquire_item(self, item):
         self.items.append(item)

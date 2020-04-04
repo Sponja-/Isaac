@@ -64,8 +64,12 @@ class Event:
         del self.handlers[name]
 
     def dispatch(self, *args, **kwargs):
+        results = []
+
         for name, handler in self.handlers.items():
             handler(*args, **kwargs)
+
+        return results
 
     def __iter__(self):
         self.index = 0
