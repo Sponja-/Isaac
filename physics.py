@@ -266,7 +266,7 @@ def detect_collision_RectCircle(r, c):
 #  Returns (normal, penetration)
 def resolve_collision_CircleCircle(c1, c2):
     vec = c1.center() - c2.center()
-    return (vec, c1.radius + c2.radius - vec.magnitude())
+    return (vec.normal(), c1.radius + c2.radius - vec.magnitude())
 
 
 def resolve_collision_RectRect(r1, r2):
@@ -311,7 +311,8 @@ def resolve_collision_RectCircle(r, c):
 
     normal = closest - c.center()
     penetration = c.radius - normal.magnitude()
-    return (normal if not inside else -normal, penetration)
+    print(penetration)
+    return (normal.normal() if not inside else -normal.normal(), penetration)
 
 
 def resolveCollision(a, b, delta_time):
@@ -323,20 +324,28 @@ def resolveCollision(a, b, delta_time):
             normal, penetration = resolve_collision_RectRect(a.collider, b.collider)
         elif type(b.collider) is CircleCollider:
             normal, penetration = resolve_collision_RectCircle(a.collider, b.collider)
-            circle = False
     elif type(a.collider) is CircleCollider:
         if type(b.collider) is CircleCollider:
             normal, penetration = resolve_collision_CircleCircle(a.collider, b.collider)
-            circle = True
         elif type(b.collider) is RectCollider:
             normal, penetration = resolve_collision_RectCircle(b.collider, a.collider)
             normal *= -1
-            circle = False
 
-    k = 2 if circle else 6
+    rv = a.velocity - b.velocity
+    vel_on_normal = rv.dot(normal)
+    if vel_on_normal > 0:
+        return
+
+    e = .2
+    j = (-(1 + e) * vel_on_normal) / (a.inverse_mass + b.inverse_mass)
+    impulse = j * normal
+    a.velocity += a.inverse_mass * impulse
+    b.velocity -= b.inverse_mass * impulse
+
+    k = .1
     correction = (penetration / (a.inverse_mass + b.inverse_mass)) * k * normal
-    a.collider.move(a.inverse_mass * correction * delta_time)
-    b.collider.move(-b.inverse_mass * correction * delta_time)
+    a.collider.move(a.inverse_mass * correction)
+    b.collider.move(-b.inverse_mass * correction)
 
 
 def normalized_direction(frm, to):

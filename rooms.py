@@ -136,6 +136,14 @@ class MapGenerator:
         self.rooms = [Room((0, 0))]
         self.positions = {(0, 0): 0}
 
+    def get_from_pos(self, pos):
+        return self.rooms[self.positions[pos]]
+
+    def get_neighbor(self, room, direction):
+        offset = MapGenerator.neighbor_offsets[direction]
+        return self.get_from_pos((room.position[0] + offset[0],
+                                  room.position[1] + offset[1]))
+
     def get_surrounding(self, position):
         return [self.positions.get((position[0] + offset[0],
                                     position[1] + offset[1]), None) is not None

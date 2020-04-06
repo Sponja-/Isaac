@@ -2,6 +2,8 @@ from game_object import GameObject
 from physics import RigidBody, RectCollider
 from debug_sprites import RectSprite, colors
 from globals import types, TILE_SIZE
+from physics import CircleCollider
+from debug_sprites import CircleSprite
 import layers
 
 
@@ -18,6 +20,18 @@ class Rock(Destructible):
                               mass=0)
 
         self.sprite = RectSprite(colors.BLACK, self.body.collider.size())
+
+        self.layer = layers.OBSTACLES
+
+
+class CircleRock(Destructible):
+    def __init__(self, position):
+        self.body = RigidBody(collider=CircleCollider,
+                              position=position,
+                              radius=30,
+                              mass=0)
+
+        self.sprite = CircleSprite(colors.BLACK, 30)
 
         self.layer = layers.OBSTACLES
 

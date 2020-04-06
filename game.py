@@ -11,6 +11,7 @@ import rooms
 import globals
 import layers
 import items
+import ui
 from random import seed, choice
 from argparse import ArgumentParser
 
@@ -25,6 +26,7 @@ class Game:
         self.clock = pg.time.Clock()
 
         self.objects = []
+        self.ui_objects = {}
         self.sprites = pg.sprite.Group()
 
         self.timers = []
@@ -76,6 +78,9 @@ class Game:
             self.sprites.update(delta_time)
             self.sprites.draw(self.screen)
 
+            for name, element in self.ui_objects.items():
+                self.screen.blit(element.image, element.position)
+
             pg.display.flip()
 
             self.clock.tick(60)
@@ -83,21 +88,20 @@ class Game:
     def load_room(self, *, position=None, direction=None):
         player_pos = None
 
-        if position is None:
-            offset = rooms.MapGenerator.neighbor_offsets[direction]
-            position = (self.current_room.position[0] + offset[0],
-                        self.current_room.position[1] + offset[1])
-            player_pos = rooms.player_room_positions[rooms.mirror[direction]]
-        index = self.floor_generator.positions[position]
-
         if self.current_room is not None:
             self.exit_room()
-            if direction is None:
-                player_pos = rooms.player_room_positions[choice(self.current_room.door_directions)]
-        else:  # First room in floor
-            player_pos = Vector(self.width / 2, self.height / 2)
 
-        self.current_room = self.floor_generator.rooms[index]
+        if position is None:
+            self.current_room = self.floor_generator.get_neighbor(self.current_room, direction)
+            player_pos = rooms.player_room_positions[rooms.mirror[direction]]
+
+        if direction is None:
+            first_room = self.current_room is None
+            self.current_room = self.floor_generator.get_from_pos(position)
+            if not first_room:
+                player_pos = rooms.player_room_positions[choice(self.current_room.door_directions)]
+            else:
+                player_pos = Vector(self.width / 2, self.height / 2)
 
         self.player.body.collider.move_to(player_pos)
 
@@ -172,6 +176,9 @@ class Game:
         for obj in self.objects:
             if type(obj) is rooms.Door:
                 obj.enabled = True
+
+    def add_ui(self, element):
+        self.ui_objects[element.name] = element
 
 
 def complete_room(self):
