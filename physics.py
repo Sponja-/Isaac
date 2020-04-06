@@ -311,7 +311,6 @@ def resolve_collision_RectCircle(r, c):
 
     normal = closest - c.center()
     penetration = c.radius - normal.magnitude()
-    print(penetration)
     return (normal.normal() if not inside else -normal.normal(), penetration)
 
 

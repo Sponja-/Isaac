@@ -11,7 +11,30 @@ SQRT_2 = 2 ** .5
 INVULNERABLE_TIME = 1
 
 
+class PlayerStat:
+    def __init__(self, name, *, start_val=None):
+        self.name = name
+        self.value = start_val
+
+    def __get__(self, player, _):
+        return self.value
+
+    def __set__(self, player, value):
+        old_val = self.value
+        self.value = value
+        player.on_stat_change.dispatch(player, self.name, old_val, value)
+
+
 class Player(GameObject):
+    coins = PlayerStat("coins", start_val=0)
+    bombs = PlayerStat("bombs", start_val=1)
+    keys = PlayerStat("keys", start_val=0)
+    speed = PlayerStat("speed", start_val=1000)
+    shot_damage = PlayerStat("shot_damage", start_val=50)
+    shot_speed = PlayerStat("shot_speed", start_val=300)
+    range = PlayerStat("range", start_val=600)
+    tears = PlayerStat("tears", start_val=10)
+
     def __init__(self, *, position):
         self.body = RigidBody(collider=CircleCollider,
                               position=position,
@@ -22,27 +45,13 @@ class Player(GameObject):
         self.sprite = CircleSprite(colors.BLACK, self.body.collider.radius)
         self.layer = layers.PLAYER
 
-        # Stats
-        self.stats = {
-            "Speed": 1000,
-            "Damage": 50,
-            "Shot Speed": 300,
-            "Range": 600,
-            "Tears": 10
-        }
-
-        self.pickups = {
-            "Coins": 0,
-            "Bombs": 99,
-            "Keys": 0
-        }
-
         self.on_move = Event("move")
         self.on_fire = Event("fire")
         self.on_heal = Event("heal")
         self.on_damage = Event("damage")
         self.on_enemy_kill = Event("enemy_kill")
         self.on_acquire_item = Event("acquire_item")
+        self.on_stat_change = Event("stat_change")
 
         self.on_update += register_keys
         self.on_update += move
@@ -79,7 +88,7 @@ class Player(GameObject):
         return False
 
     def add_hearts(self, amount):
-        self.health.increase_heart_canisters(amount)
+        self.health.add_heart_canisters(amount)
 
     def acquire_item(self, item):
         self.items.append(item)
@@ -105,20 +114,19 @@ def register_keys(self, delta_time):
 def move(self, delta_time):
     movement_axes = 0
     move_force = Vector(0, 0)
-    speed = self.stats["Speed"]
 
     if self.keys['w']:
         movement_axes += 1
-        move_force += (0, -speed)
+        move_force += (0, -self.speed)
     elif self.keys['s']:
         movement_axes += 1
-        move_force += (0, speed)
+        move_force += (0, self.speed)
     if self.keys['a']:
         movement_axes += 1
-        move_force += (-speed, 0)
+        move_force += (-self.speed, 0)
     elif self.keys['d']:
         movement_axes += 1
-        move_force += (speed, 0)
+        move_force += (self.speed, 0)
 
     if movement_axes == 2:
         move_force /= SQRT_2
@@ -132,7 +140,6 @@ def fire(self, delta_time):
     if not self.can_shoot:
         return
 
-    shot_speed = self.stats["Shot Speed"]
     player_v = self.body.velocity / 300
     if self.keys["up"]:
         velocity = Vector(0, -1) + (player_v.x, 0)
@@ -146,27 +153,27 @@ def fire(self, delta_time):
         return
 
     velocity.normalize()
-    velocity *= shot_speed
+    velocity *= self.shot_speed
 
     tear = PlayerTear(position=self.body.collider.center(),
                       velocity=velocity,
-                      range=self.stats["Range"],
-                      damage=self.stats["Damage"])
+                      range=self.range,
+                      damage=self.shot_damage)
     self.game.add(tear)
     self.can_shoot = False
 
     def reset_shoot():
         self.can_shoot = True
 
-    self.game.add_timer(self.stats["Tears"] / 10, reset_shoot)
+    self.game.add_timer(self.tears / 10, reset_shoot)
 
     self.on_fire.dispatch(self, tear)
 
 
 def bomb_place(self, delta_time):
-    if self.can_place_bomb and self.keys['e'] and self.pickups["Bombs"] > 0:
+    if self.can_place_bomb and self.keys['e'] and self.bombs > 0:
         self.can_place_bomb = False
-        self.pickups["Bombs"] -= 1
+        self.bombs -= 1
 
         def reset_bomb_place():
             self.can_place_bomb = True

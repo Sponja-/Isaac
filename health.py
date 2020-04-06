@@ -90,7 +90,7 @@ class PlayerHealth:
         if self.heart_canisters == MAX_HEARTS:
             return
         self.heart_canisters += 1
-        if self.total_health() <= MAX_HEARTS:
+        if self.total_hearts() <= MAX_HEARTS:
             return
         else:
             self.extra_hearts[-1].pop()

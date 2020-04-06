@@ -30,7 +30,7 @@ class Key(Pickup):
         super().__init__(position, CircleSprite(colors.LIGHT_GRAY, 10))
 
     def action(self, player):
-        player.pickups["Keys"] += 1
+        player.keys += 1
 
 
 class Bomb(Pickup):
@@ -38,7 +38,7 @@ class Bomb(Pickup):
         super().__init__(position, CircleSprite(colors.GRAY, 10))
 
     def action(self, player):
-        player.pickups["Bombs"] += 1
+        player.bombs += 1
 
 
 class Coin(Pickup):
@@ -46,7 +46,7 @@ class Coin(Pickup):
         super().__init__(position, CircleSprite(colors.YELLOW, 10))
 
     def action(self, player):
-        player.pickups["Coins"] += 1
+        player.coins += 1
 
 
 class Heart(Pickup):
