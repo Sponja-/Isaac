@@ -4,14 +4,11 @@ from player import Player
 from debug_sprites import colors
 from physics import Vector, resolveCollision
 from game_object import Event
-import obstacles
-import pickups
-import enemy
 import rooms
 import globals
 import layers
-import items
 import ui
+import assets
 from random import seed, choice
 from argparse import ArgumentParser
 
@@ -42,6 +39,8 @@ class Game:
         self.on_room_complete += complete_room
 
         self.load_room(position=(0, 0))
+
+        self.add_ui(ui.PlayerPickups(position=(10, 40)))
 
     def run(self):
         while True:
@@ -79,7 +78,7 @@ class Game:
             self.sprites.draw(self.screen)
 
             for name, element in self.ui_objects.items():
-                self.screen.blit(element.image, element.position)
+                self.screen.blit(element.get_render(), element.position)
 
             pg.display.flip()
 
@@ -179,6 +178,8 @@ class Game:
 
     def add_ui(self, element):
         self.ui_objects[element.name] = element
+        element.game = self
+        element.on_mount()
 
 
 def complete_room(self):

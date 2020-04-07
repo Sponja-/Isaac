@@ -13,6 +13,7 @@ class colors:
     DARK_GRAY = (64, 64, 64)
     DARK_RED = (128, 16, 16)
     BROWN = (165, 42, 42)
+    TRANSPARENT = (255, 0, 255)  # purple can't be used
 
 
 class RectSprite(pg.sprite.Sprite):
@@ -29,7 +30,9 @@ class CircleSprite(pg.sprite.Sprite):
     def __init__(self, color, radius):
         super().__init__()
         radius = int(radius)
-        self.image = pg.Surface((radius * 2, radius * 2), pg.SRCALPHA)
+        self.image = pg.Surface((radius * 2, radius * 2))
+        self.image.set_colorkey(colors.TRANSPARENT)
+        self.image.fill(colors.TRANSPARENT)
         pg.draw.circle(self.image, color, (radius, radius), radius)
 
         self.rect = self.image.get_rect()

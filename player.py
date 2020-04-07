@@ -25,6 +25,9 @@ class PlayerStat:
         player.on_stat_change.dispatch(player, self.name, old_val, value)
 
 
+pickups = ["coins", "bombs", "keys"]
+
+
 class Player(GameObject):
     coins = PlayerStat("coins", start_val=0)
     bombs = PlayerStat("bombs", start_val=1)
@@ -57,6 +60,8 @@ class Player(GameObject):
         self.on_update += move
         self.on_update += fire
         self.on_update += bomb_place
+
+        self.on_stat_change += update_pickups
 
         self.health = PlayerHealth(heart_canisters=3,
                                    player=self)
@@ -97,34 +102,34 @@ class Player(GameObject):
 
 def register_keys(self, delta_time):
     keys = pg.key.get_pressed()
-    self.keys = {}
-    self.keys['w'] = keys[pg.K_w]
-    self.keys['a'] = keys[pg.K_a]
-    self.keys['s'] = keys[pg.K_s]
-    self.keys['d'] = keys[pg.K_d]
-    self.keys["up"] = keys[pg.K_UP]
-    self.keys["down"] = keys[pg.K_DOWN]
-    self.keys["left"] = keys[pg.K_LEFT]
-    self.keys["right"] = keys[pg.K_RIGHT]
-    self.keys["q"] = keys[pg.K_q]
-    self.keys["e"] = keys[pg.K_e]
-    self.keys["space"] = keys[pg.K_SPACE]
+    self.pressed_keys = {}
+    self.pressed_keys['w'] = keys[pg.K_w]
+    self.pressed_keys['a'] = keys[pg.K_a]
+    self.pressed_keys['s'] = keys[pg.K_s]
+    self.pressed_keys['d'] = keys[pg.K_d]
+    self.pressed_keys["up"] = keys[pg.K_UP]
+    self.pressed_keys["down"] = keys[pg.K_DOWN]
+    self.pressed_keys["left"] = keys[pg.K_LEFT]
+    self.pressed_keys["right"] = keys[pg.K_RIGHT]
+    self.pressed_keys["q"] = keys[pg.K_q]
+    self.pressed_keys["e"] = keys[pg.K_e]
+    self.pressed_keys["space"] = keys[pg.K_SPACE]
 
 
 def move(self, delta_time):
     movement_axes = 0
     move_force = Vector(0, 0)
 
-    if self.keys['w']:
+    if self.pressed_keys['w']:
         movement_axes += 1
         move_force += (0, -self.speed)
-    elif self.keys['s']:
+    elif self.pressed_keys['s']:
         movement_axes += 1
         move_force += (0, self.speed)
-    if self.keys['a']:
+    if self.pressed_keys['a']:
         movement_axes += 1
         move_force += (-self.speed, 0)
-    elif self.keys['d']:
+    elif self.pressed_keys['d']:
         movement_axes += 1
         move_force += (self.speed, 0)
 
@@ -141,13 +146,13 @@ def fire(self, delta_time):
         return
 
     player_v = self.body.velocity / 300
-    if self.keys["up"]:
+    if self.pressed_keys["up"]:
         velocity = Vector(0, -1) + (player_v.x, 0)
-    elif self.keys["down"]:
+    elif self.pressed_keys["down"]:
         velocity = Vector(0, 1) + (player_v.x, 0)
-    elif self.keys["left"]:
+    elif self.pressed_keys["left"]:
         velocity = Vector(-1, 0) + (0, player_v.y)
-    elif self.keys["right"]:
+    elif self.pressed_keys["right"]:
         velocity = Vector(1, 0) + (0, player_v.y)
     else:
         return
@@ -171,7 +176,7 @@ def fire(self, delta_time):
 
 
 def bomb_place(self, delta_time):
-    if self.can_place_bomb and self.keys['e'] and self.bombs > 0:
+    if self.can_place_bomb and self.pressed_keys['e'] and self.bombs > 0:
         self.can_place_bomb = False
         self.bombs -= 1
 
@@ -181,3 +186,12 @@ def bomb_place(self, delta_time):
         self.game.add_timer(3, reset_bomb_place)
 
         self.game.add(PlacedBomb(position=self.body.collider.center()))
+
+
+def update_pickups(self, stat_name, *_):
+    if stat_name in pickups:
+        data = {}
+        for name in pickups:
+            data[name] = getattr(self, name)
+
+        self.game.ui_objects["pickups"].set_stats(data)

@@ -18,5 +18,13 @@
 			"position": [5, 5]
 		}
 	]
+},
+{
+	"objects":[
+		{
+			"type": "Coin",
+			"position": [2, 10]
+		}
+	]
 }
 ]
