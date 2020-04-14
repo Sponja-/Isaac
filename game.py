@@ -26,7 +26,8 @@ class Game:
         self.ui_objects = {}
         self.sprites = pg.sprite.Group()
 
-        self.timers = []
+        self.timers = {}
+        self.timer_index = 0
 
         self.floor_generator = rooms.MapGenerator()
         self.floor_generator.generate_map(20, 4)
@@ -65,12 +66,16 @@ class Game:
             self.compute_collisions(delta_time)
 
             current_time = self.get_time()
+            to_remove = []
 
-            for i, (time, function, args) in enumerate(self.timers):
+            for id, (time, function, args) in self.timers.items():
                 if time <= current_time:
                     result = function(*args)
                     if not result:
-                        self.timers.pop(i)
+                        to_remove.append(id)
+
+            for id in to_remove:
+                self.remove_timer(id)
 
             self.screen.fill(colors.WHITE)
 
@@ -151,7 +156,12 @@ class Game:
         return pg.time.get_ticks() / 1000
 
     def add_timer(self, time, function, args=()):
-        self.timers.append((self.get_time() + time, function, args))
+        self.timers[self.timer_index] = (self.get_time() + time, function, args)
+        self.timer_index += 1
+        return self.timer_index - 1
+
+    def remove_timer(self, id):
+        del self.timers[id]
 
     def find_object(self, tag):
         for obj in self.objects:
