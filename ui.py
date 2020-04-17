@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from physics import Vector
 import pygame as pg
 
 pg.font.init()
@@ -12,6 +13,21 @@ fonts = [
     pg.font.Font(pg.font.get_default_font(), 24),
     pg.font.Font(pg.font.get_default_font(), 36)
 ]
+
+
+DEFAULT_ALPHA = (255, 0, 255)
+
+
+class TriggerGetImage:
+    def __init__(self, prop_name):
+        self.prop_name = prop_name
+
+    def __get__(self, instance):
+        return getattr(instance, self.prop_name)
+
+    def __set__(self, instance, value):
+        setattr(instance, self.prop_name, value)
+        instance.image = instance.get_image()
 
 
 class UIElement(ABC):
@@ -38,6 +54,10 @@ class StaticImage(UIElement):
 
 
 class Text(StaticImage):
+    text = TriggerGetImage("_text")
+    color = TriggerGetImage("_color")
+    bg_color = TriggerGetImage("_bg_color")
+
     def __init__(self, name, *, position, text, type=1, color=(0, 0, 0), bg_color=None):
         self._text = text
         self._color = color
@@ -53,36 +73,9 @@ class Text(StaticImage):
             surface.set_colorkey(self.bg_color)
             return surface
 
-    @property
-    def text(self):
-        return self._text
-
-    @text.setter
-    def text(self, value):
-        self._text = value
-        self.image = self.get_image()
-
-    @property
-    def color(self):
-        return self._color
-
-    @color.setter
-    def color(self, value):
-        self._color = value
-        self.image = self.get_image()
-
-    @property
-    def bg_color(self):
-        return self._bg_color
-
-    @bg_color.setter
-    def bg_color(self, value):
-        self._bg_color = value
-        self.image = self.get_image()
-
 
 class UIGroup(UIElement):
-    def __init__(self, name, *, position, size, bg_color=(255, 0, 255), alpha=True, static=True):
+    def __init__(self, name, *, position, size, bg_color=DEFAULT_ALPHA, alpha=True, static=True):
         super().__init__(name, position=position)
         self.bg_color = bg_color
         self.size = size
@@ -153,3 +146,47 @@ class PlayerPickups(UIGroup):
             self.elements[name].text = str(value)
 
         self.update()
+
+
+class DebugUI(UIElement):
+    def __init__(self, name, *, position):
+        super().__init__("debug_" + name, position=position)
+
+    def on_mount(self):
+        self.enabled = self.game.debug
+
+
+class StaticDebugUI(UIElement):
+    def __init__(self, name, *, position, image):
+        super().__init__(name, position=position)
+        self.image = image
+
+
+class DebugLine(StaticDebugUI):
+    frm = TriggerGetImage("_frm")
+    to = TriggerGetImage("_to")
+    color = TriggerGetImage("_color")
+
+    def __init__(self, name, frm, to, *, color):
+        self._frm = Vector(*frm)
+        self._to = Vector(*to)
+        self._color = color
+        super().__init__(name, position=None, image=self.get_image())
+
+    def get_image(self):
+        width = abs(self.to.x - self.frm.x)
+        height = abs(self.to.y - self.frm.y)
+
+        result = pg.Surface((width, height))
+        result.fill(DEFAULT_ALPHA)
+        result.set_colorkey(DEFAULT_ALPHA)
+
+        x0, x1 = 0, width
+        if self.frm.x > self.to.x:
+            x0, x1 = x1, x0
+        y0, y1 = 0, height
+        if self.frm.y > self.to.y:
+            y0, y1 = y1, y0
+
+        pg.draw.line(result, self.color, (x0, y0), (x1, y1))
+        self.position = self.frm - (x0, y0)

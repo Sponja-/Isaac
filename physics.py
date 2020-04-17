@@ -21,6 +21,9 @@ class Vector:
     def __repr__(self):
         return f"({self.x}, {self.y})"
 
+    def __hash__(self):
+        return hash((self.x, self.y))
+
     @vector_argument
     def __add__(self, other):
         return Vector(self.x + other.x, self.y + other.y)
