@@ -22,7 +22,7 @@ class TriggerGetImage:
     def __init__(self, prop_name):
         self.prop_name = prop_name
 
-    def __get__(self, instance):
+    def __get__(self, instance, type):
         return getattr(instance, self.prop_name)
 
     def __set__(self, instance, value):

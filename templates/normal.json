@@ -26,5 +26,13 @@
 			"position": [2, 10]
 		}
 	]
+},
+{
+	"objects":[
+		{
+			"type": "Rock",
+			"position": [0, 0]
+		}
+	]
 }
 ]

@@ -7,10 +7,8 @@ import json
 from game_object import GameObject
 from physics import RigidBody, RectCollider, Vector
 from debug_sprites import colors, RectSprite
-from globals import TILE_SIZE, types
+from globals import TILE_SIZE, types, ROOM_WIDTH, ROOM_HEIGHT, WALL_SIZE
 import layers
-
-room_size = room_width, room_height = (20, 15)
 
 DOWN = 0
 UP = 1
@@ -31,14 +29,18 @@ for file_name in os.listdir("templates"):
         templates[os.path.basename(file_name).split('.')[0]] = json.load(file)
 
 
-class Door(GameObject):
+class Barrier(GameObject):
+    pass
+
+
+class Door(Barrier):
     positions = [
-        Vector(room_width * TILE_SIZE / 2, room_height * TILE_SIZE),
-        Vector(room_width * TILE_SIZE / 2, 0),
-        Vector(room_width * TILE_SIZE, room_height * TILE_SIZE / 2),
-        Vector(0, room_height * TILE_SIZE / 2)
+        Vector(ROOM_WIDTH * TILE_SIZE / 2, ROOM_HEIGHT * TILE_SIZE + WALL_SIZE / 2),
+        Vector(ROOM_WIDTH * TILE_SIZE / 2, -WALL_SIZE / 2),
+        Vector(ROOM_WIDTH * TILE_SIZE + WALL_SIZE / 2, ROOM_HEIGHT * TILE_SIZE / 2),
+        Vector(-WALL_SIZE / 2, ROOM_HEIGHT * TILE_SIZE / 2)
     ]
-    size = (2 * TILE_SIZE, int(TILE_SIZE / 4))
+    size = (2 * TILE_SIZE, WALL_SIZE + 5)
 
     def __init__(self, direction):
         position = Door.positions[direction]
@@ -71,9 +73,9 @@ def enter_door(self, player):
         self.game.load_room(direction=self.direction)
 
 
-class Wall(GameObject):
-    vertical_size = (TILE_SIZE / 4 - 5, room_height * TILE_SIZE)
-    horizontal_size = (room_width * TILE_SIZE, TILE_SIZE / 4 - 5)
+class Wall(Barrier):
+    vertical_size = (WALL_SIZE, ROOM_HEIGHT * TILE_SIZE + WALL_SIZE * 2)
+    horizontal_size = (ROOM_WIDTH * TILE_SIZE + WALL_SIZE * 2, WALL_SIZE)
 
     def __init__(self, direction):
         position = Door.positions[direction]

@@ -24,16 +24,4 @@ class Rock(Destructible):
         self.layer = layers.OBSTACLES
 
 
-class CircleRock(Destructible):
-    def __init__(self, position):
-        self.body = RigidBody(collider=CircleCollider,
-                              position=position,
-                              radius=30,
-                              mass=0)
-
-        self.sprite = CircleSprite(colors.BLACK, 30)
-
-        self.layer = layers.OBSTACLES
-
-
 types["Rock"] = Rock

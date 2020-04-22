@@ -15,24 +15,44 @@ from argparse import ArgumentParser
 pg.init()
 
 
+class OffsetedSpriteGroup(pg.sprite.Group):
+    def __init__(self, *args, offset, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.offset = offset
+
+    def draw(self, surface):
+        sprites = self.sprites()
+        surface_blit = surface.blit
+        for spr in sprites:
+            self.spritedict[spr] = surface_blit(spr.image, spr.rect.move(*self.offset))
+        self.lostsprites = []
+
+
 class Game:
-    def __init__(self, size):
-        self.size = self.width, self.height = size
-        self.screen = pg.display.set_mode(size)
+    def __init__(self, *, game_seed=None):
+
+        self.size = (self.width, self.height) = (
+            globals.ROOM_WIDTH * globals.TILE_SIZE,
+            globals.ROOM_HEIGHT * globals.TILE_SIZE
+        )
+        self.screen = pg.display.set_mode((self.width + 2 * globals.WALL_SIZE,
+                                           self.height + 2 * globals.WALL_SIZE))
+        if game_seed is not None:
+            seed(game_seed)
 
         self.clock = pg.time.Clock()
 
         self.objects = []
         self.ui_objects = {}
-        self.sprites = pg.sprite.Group()
+        self.sprites = OffsetedSpriteGroup(offset=(globals.WALL_SIZE, globals.WALL_SIZE))
 
         self.timers = {}
         self.timer_index = 0
 
         self.floor_generator = rooms.MapGenerator()
-        self.floor_generator.generate_map(20, 4)
+        self.floor_generator.generate_map(10, 4)
 
-        self.player = Player(position=(self.width / 2, self.height / 2))
+        self.player = Player(position=self.room_center())
         self.current_room = None
         self.enemy_count = 0
 
@@ -50,7 +70,7 @@ class Game:
                     exit()
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_f:
-                        self.player.body.collider.move_to((self.width / 2, self.height / 2))
+                        self.player.body.collider.move_to(self.room_center())
 
             delta_time = self.clock.get_time() / 1000
 
@@ -59,9 +79,7 @@ class Game:
                 obj.update(delta_time)
 
                 if obj.to_kill:
-                    self.objects.pop(i)
-                    if obj.sprite is not None:
-                        self.sprites.remove(obj.sprite)
+                    self.remove(i)
 
             self.compute_collisions(delta_time)
 
@@ -89,6 +107,15 @@ class Game:
 
             self.clock.tick(60)
 
+    def compute_collisions(self, delta_time):
+        for i, obj in enumerate(self.objects):
+            for other in self.objects[i + 1:]:
+                if layers.collisions[obj.layer][other.layer]:
+                    if obj.body.collider.is_colliding(other.body.collider):
+                        obj.collide(other)
+                        other.collide(obj)
+                        resolveCollision(obj.body, other.body, delta_time)
+
     def load_room(self, *, position=None, direction=None):
         player_pos = None
 
@@ -105,14 +132,17 @@ class Game:
             if not first_room:
                 player_pos = rooms.player_room_positions[choice(self.current_room.door_directions)]
             else:
-                player_pos = Vector(self.width / 2, self.height / 2)
+                player_pos = self.room_center()
 
         self.player.body.collider.move_to(player_pos)
 
         self.add(self.player)
 
+        self.obstacle_grid = [[None for j in range(globals.ROOM_WIDTH)]
+                              for i in range(globals.ROOM_HEIGHT)]
+
         for obj in self.current_room.objects:
-            self.add(obj)
+            self.add(obj, loading_room=True)
 
         if self.enemy_count > 0:
             self.close_doors()
@@ -131,16 +161,10 @@ class Game:
         self.objects.clear()
         self.enemy_count = 0
 
-    def compute_collisions(self, delta_time):
-        for i, obj in enumerate(self.objects):
-            for other in self.objects[i + 1:]:
-                if layers.collisions[obj.layer][other.layer]:
-                    if obj.body.collider.is_colliding(other.body.collider):
-                        obj.collide(other)
-                        other.collide(obj)
-                        resolveCollision(obj.body, other.body, delta_time)
+    def room_center(self):
+        return Vector(self.width / 2, self.height / 2)
 
-    def add(self, obj):
+    def add(self, obj, *, loading_room=False):
         obj.game = self
 
         obj.on_mount.dispatch(obj)
@@ -149,8 +173,22 @@ class Game:
         if obj.sprite is not None:
             self.sprites.add(obj.sprite)
 
-        if obj.layer == layers.ENEMIES:
+        if obj.layer == layers.OBSTACLES and not isinstance(obj, rooms.Barrier):
+            pos = obj.body.collider.center()
+            x, y = int(pos.x // globals.TILE_SIZE), int(pos.y // globals.TILE_SIZE)
+            self.obstacle_grid[y][x] = obj
+        elif obj.layer == layers.ENEMIES:
             self.enemy_count += 1
+
+    def remove(self, index):
+        obj = self.objects.pop(index)
+        if obj.sprite is not None:
+            self.sprites.remove(obj.sprite)
+        if obj.layer == layers.OBSTACLES:
+            pos = obj.body.collider.center()
+            x, y = int(pos.x // globals.TILE_SIZE), int(pos.y // globals.TILE_SIZE)
+            if self.obstacle_grid[y][x] is obj:
+                self.obstacle_grid[y][x] = None
 
     def get_time(self):
         return pg.time.get_ticks() / 1000
@@ -199,14 +237,13 @@ def complete_room(self):
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="Binding of Isaac clone")
-    parser.add_argument('-s', type=int, help="Game seed")
+    parser.add_argument('-s', help="Game seed")
 
     args = parser.parse_args()
 
+    options = {}
+
     if args.s is not None:
-        seed(args.s)
+        options["seed"] = hash(args.s)
 
-    game = Game((globals.TILE_SIZE * rooms.room_width,
-                 globals.TILE_SIZE * rooms.room_height))
-
-    game.run()
+    Game(**options).run()
