@@ -3,9 +3,10 @@ from sys import exit
 from player import Player
 from debug_sprites import colors
 from physics import Vector, resolveCollision
+from globals import TILE_SIZE, WALL_SIZE
+from globals import ROOM_WIDTH, ROOM_HEIGHT
 from game_object import Event
 import rooms
-import globals
 import layers
 import ui
 import assets
@@ -32,11 +33,11 @@ class Game:
     def __init__(self, *, game_seed=None):
 
         self.size = (self.width, self.height) = (
-            globals.ROOM_WIDTH * globals.TILE_SIZE,
-            globals.ROOM_HEIGHT * globals.TILE_SIZE
+            ROOM_WIDTH * TILE_SIZE,
+            ROOM_HEIGHT * TILE_SIZE
         )
-        self.screen = pg.display.set_mode((self.width + 2 * globals.WALL_SIZE,
-                                           self.height + 2 * globals.WALL_SIZE))
+        self.screen = pg.display.set_mode((self.width + 2 * WALL_SIZE,
+                                           self.height + 2 * WALL_SIZE))
         if game_seed is not None:
             seed(game_seed)
 
@@ -44,7 +45,7 @@ class Game:
 
         self.objects = []
         self.ui_objects = {}
-        self.sprites = OffsetedSpriteGroup(offset=(globals.WALL_SIZE, globals.WALL_SIZE))
+        self.sprites = OffsetedSpriteGroup(offset=(WALL_SIZE, WALL_SIZE))
 
         self.timers = {}
         self.timer_index = 0
@@ -138,8 +139,8 @@ class Game:
 
         self.add(self.player)
 
-        self.obstacle_grid = [[None for j in range(globals.ROOM_WIDTH)]
-                              for i in range(globals.ROOM_HEIGHT)]
+        self.obstacle_grid = [[None for j in range(ROOM_WIDTH)]
+                              for i in range(ROOM_HEIGHT)]
 
         for obj in self.current_room.objects:
             self.add(obj, loading_room=True)
@@ -174,8 +175,8 @@ class Game:
             self.sprites.add(obj.sprite)
 
         if obj.layer == layers.OBSTACLES and not isinstance(obj, rooms.Barrier):
-            pos = obj.body.collider.center()
-            x, y = int(pos.x // globals.TILE_SIZE), int(pos.y // globals.TILE_SIZE)
+            pos = obj.body.collider.center() / TILE_SIZE
+            x, y = int(pos.x), int(pos.y)
             self.obstacle_grid[y][x] = obj
         elif obj.layer == layers.ENEMIES:
             self.enemy_count += 1
@@ -185,8 +186,8 @@ class Game:
         if obj.sprite is not None:
             self.sprites.remove(obj.sprite)
         if obj.layer == layers.OBSTACLES:
-            pos = obj.body.collider.center()
-            x, y = int(pos.x // globals.TILE_SIZE), int(pos.y // globals.TILE_SIZE)
+            pos = obj.body.collider.center() / TILE_SIZE
+            x, y = int(pos.x), int(pos.y)
             if self.obstacle_grid[y][x] is obj:
                 self.obstacle_grid[y][x] = None
 

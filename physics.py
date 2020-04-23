@@ -15,8 +15,8 @@ def vector_argument(function):
 
 class Vector:
     def __init__(self, x, y):
-        self.x = float(x)
-        self.y = float(y)
+        self.x = x
+        self.y = y
 
     def __repr__(self):
         return f"({self.x}, {self.y})"
@@ -47,7 +47,7 @@ class Vector:
         return self.__mul__(other)
 
     def __truediv__(self, other):
-        return Vector(self.x / other, self.y / other)
+        return Vector(float(self.x) / other, float(self.y) / other)
 
     @vector_argument
     def __iadd__(self, other):
@@ -67,12 +67,18 @@ class Vector:
         return self
 
     def __itruediv__(self, other):
-        self.x /= other
-        self.y /= other
+        self.x /= float(other)
+        self.y /= float(other)
         return self
 
     def __neg__(self):
         return Vector(-self.x, -self.y)
+
+    def __int__(self):
+        return Vector(int(self.x), int(self.y))
+
+    def __float__(self):
+        return Vector(float(self.x), float(self.y))
 
     def __iter__(self):
         yield self.x

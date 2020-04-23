@@ -70,13 +70,13 @@ class Player(GameObject):
         self.invulnerable = False
         self.items = []
 
-    def damage(self, amount=.5):
-        stop_damage = self.on_damage.dispatch(self, amount)
+    def damage(self):
+        stop_damage = self.on_damage.dispatch(self)
 
         if self.invulnerable or any(stop_damage):
             return False
 
-        self.health.damage(amount)
+        self.health.damage()
         self.invulnerable = True
 
         def reset_invulnerable():
